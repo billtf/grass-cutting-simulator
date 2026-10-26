@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grass Friend tests</title>
+    <style>
+      body {
+        font-family: "Trebuchet MS", Verdana, sans-serif;
+        background: #f4f1de;
+        color: #1b2a1b;
+        margin: 24px;
+      }
+      h1 {
+        color: #1b5e20;
+      }
+      .row {
+        padding: 8px 10px;
+        margin: 6px 0;
+        border-left: 8px solid #999;
+        background: #fff;
+      }
+      .row.pass {
+        border-color: #2e7d32;
+      }
+      .row.fail {
+        border-color: #c62828;
+      }
+      .row.skip {
+        border-color: #f9a825;
+      }
+      #summary {
+        font-weight: 700;
+        margin-top: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Grass Friend sim tests</h1>
+    <p>No npm. Open this page the same way as the game (<code>python3 -m http.server</code>).</p>
+    <div id="results"></div>
+    <p id="summary"></p>
+    <script type="module" src="tests.js"></script>
+  </body>
+</html>

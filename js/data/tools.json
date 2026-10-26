@@ -1,0 +1,22 @@
+[
+  {
+    "id": "scissors",
+    "name": "Scissors",
+    "tier": 1,
+    "unlockLevel": 1,
+    "cost": 0,
+    "width": 1,
+    "speed": 0.5,
+    "energyPerCell": 1.0,
+    "baseQuality": 0.7,
+    "cutSeconds": 2,
+    "targetHeight": 3,
+    "deckHeight": null,
+    "upkeep": {
+      "sharpnessLossPerCell": 0.02,
+      "sharpenEveryDays": 2
+    },
+    "maxGrassHeight": null,
+    "needsFuel": false
+  }
+]

@@ -67,18 +67,18 @@ The sim modules hold all game state and rules and load their numbers from the da
 
 Goal: walk around a lawn that grows, cut it with scissors, close the tab, come back, and find it where you left it. Tag `v0.1`.
 
-- [ ] **P0.1 Repo and Pages setup (1 h).** Steps in Repo setup above; green canvas live on the Chromebook.
-- [ ] **P0.2 Boot and game loop (2 h).** `main.js` loads config JSON, runs a fixed 30 Hz sim tick and a requestAnimationFrame render; pauses when the tab is hidden.
-- [ ] **P0.3 Scene manager (1 h).** Push and pop scenes (title, lawn, pause) with enter, exit, update, draw hooks.
-- [ ] **P0.4 Game clock (1 h).** In game hour counter, 6 minute day, day rollover event, fast forward.
-- [ ] **P0.5 Lawn grid (2 h).** `lawn.js` with typed arrays for height, moisture, health, weed, fertilizer, lastCut; 32 x 24 start; random 2.5 to 4 in heights.
-- [ ] **P0.6 Growth tick (2 h).** Growth formula from the spec with season and water multipliers stubbed at 1.0; runs each in game hour.
-- [ ] **P0.7 Lawn renderer (2 h).** Offscreen canvas of cells colored by height and health; redraw only changed cells; 3x pixel scale.
-- [ ] **P0.8 Player movement (1.5 h).** WASD and arrows, collision with lawn edges, simple 16 px sprite square.
-- [ ] **P0.9 Scissors cutting (1.5 h).** Hold Space to cut the facing cell to 3 in over 2 s; apply the one third rule check.
-- [ ] **P0.10 Basic HUD and points (1 h).** Clock, day, points; +2 per clean cut, penalties for overgrown cells.
-- [ ] **P0.11 Height overlay (0.5 h).** H toggles green, yellow, red height map.
-- [ ] **P0.12 Save and load (0.5 h).** Autosave at day end and on tab hide; load on boot; base64 typed arrays; `schemaVersion: 1`.
+- [x] **P0.1 Repo and Pages setup (1 h).** Steps in Repo setup above; green canvas live on the Chromebook.
+- [x] **P0.2 Boot and game loop (2 h).** `main.js` loads config JSON, runs a fixed 30 Hz sim tick and a requestAnimationFrame render; pauses when the tab is hidden.
+- [x] **P0.3 Scene manager (1 h).** Push and pop scenes (title, lawn, pause) with enter, exit, update, draw hooks.
+- [x] **P0.4 Game clock (1 h).** In game hour counter, 6 minute day, day rollover event, fast forward.
+- [x] **P0.5 Lawn grid (2 h).** `lawn.js` with typed arrays for height, moisture, health, weed, fertilizer, lastCut; 32 x 24 start; random 2.5 to 4 in heights.
+- [x] **P0.6 Growth tick (2 h).** Growth formula from the spec with season and water multipliers stubbed at 1.0; runs each in game hour.
+- [x] **P0.7 Lawn renderer (2 h).** Offscreen canvas of cells colored by height and health; redraw only changed cells; 3x pixel scale.
+- [x] **P0.8 Player movement (1.5 h).** WASD and arrows, collision with lawn edges, simple 16 px sprite square.
+- [x] **P0.9 Scissors cutting (1.5 h).** Hold Space to cut the facing cell to 3 in over 2 s; apply the one third rule check.
+- [x] **P0.10 Basic HUD and points (1 h).** Clock, day, points; +2 per clean cut, penalties for overgrown cells.
+- [x] **P0.11 Height overlay (0.5 h).** H toggles green, yellow, red height map.
+- [x] **P0.12 Save and load (0.5 h).** Autosave at day end and on tab hide; load on boot; base64 typed arrays; `schemaVersion: 1`.
 
 **Done when:** grass visibly grows over 2 in game days, cutting changes cells, 60 fps on the Chromebook, and a reload restores the exact lawn.
 
