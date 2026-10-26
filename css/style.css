@@ -79,8 +79,16 @@ body {
   top: 12px;
 }
 
+.hud-mid {
+  top: 52px;
+}
+
 .hud-bottom {
   bottom: 12px;
+}
+
+.hidden {
+  display: none !important;
 }
 
 .hud-chip {
@@ -226,6 +234,85 @@ h1 {
 .debug-panel button {
   font: inherit;
   cursor: pointer;
+}
+
+.panel.wide {
+  width: min(560px, calc(100% - 24px));
+  max-height: calc(100% - 32px);
+  overflow: auto;
+}
+
+.tabs,
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 12px;
+  flex-wrap: wrap;
+}
+
+.shop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 42vh;
+  overflow: auto;
+}
+
+.shop-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  background: #e8f5e9;
+  border: 2px solid #a5d6a7;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.score-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.score-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.tip {
+  background: #fff8e1;
+  border-left: 6px solid #f9a825;
+  padding: 8px 10px;
+  color: #3e2723;
+}
+
+.mini-bar {
+  position: relative;
+  height: 18px;
+  background: #cfd8dc;
+  border: 2px solid #455a64;
+  margin-top: 10px;
+}
+
+.mini-green {
+  position: absolute;
+  left: 38%;
+  width: 24%;
+  top: 0;
+  bottom: 0;
+  background: #81c784;
+}
+
+.mini-bar b {
+  position: absolute;
+  top: -2px;
+  width: 4px;
+  height: 20px;
+  background: #212121;
+  transform: translateX(-2px);
 }
 
 noscript p {

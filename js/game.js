@@ -8,6 +8,7 @@ import { createLawnAtlas, rebuildAtlas } from "./render/lawn.js";
 import { mountHud } from "./ui/hud.js";
 import { createTitleScene } from "./ui/screens/title.js";
 import { createLawnScene } from "./ui/screens/lawn.js";
+import { makeOwnedTool } from "./sim/shop.js";
 import { createPauseScene } from "./ui/screens/pause.js";
 import { createSettingsScene } from "./ui/screens/settings.js";
 import {
@@ -19,10 +20,12 @@ import {
 import { createDebug } from "./debug.js";
 
 export class Game {
-  constructor(config, tools, difficulty, els) {
+  constructor(config, tools, difficulty, shop, tips, els) {
     this.config = config;
     this.tools = tools;
     this.difficultyTable = difficulty;
+    this.shop = shop;
+    this.tips = tips;
     this.canvas = els.canvas;
     this.ctx = els.canvas.getContext("2d");
     this.hudEl = els.hud;
@@ -198,11 +201,24 @@ export class Game {
         },
       ],
       inventory: {
-        tools: [{ id: "scissors", sharpness: 100 }],
+        tools: [makeOwnedTool(this.tools.find((t) => t.id === "scissors") || { id: "scissors", needsFuel: false })],
         equippedTool: "scissors",
-        supplies: { seed: 0, fertilizer: 0, weedSpray: 0, fuel: 0 },
+        deckHeight: 3,
+        supplies: { seed: 0, fertilizer: 0, weedSpray: 0, fuel: 0, line: 0 },
       },
       settings: { volume: 0.7, colorblind: false, reducedMotion: false },
+      dayLog: {
+        cuts: 0,
+        clean: 0,
+        rough: 0,
+        scalped: 0,
+        oneThird: 0,
+        overgrown: 0,
+        points: 0,
+        ontime: 0,
+        healthy: 0,
+        coinsStart: rules.startingCoins,
+      },
     };
   }
 
@@ -248,13 +264,30 @@ export class Game {
       overlay: saved.overlay || "none",
       activeCharacterId: saved.activeCharacterId || "c1",
       characters: saved.characters || this.freshState(rules.id).characters,
-      inventory: saved.inventory || {
-        tools: [{ id: "scissors", sharpness: 100 }],
-        equippedTool: "scissors",
-        supplies: { seed: 0, fertilizer: 0, weedSpray: 0, fuel: 0 },
-      },
+      inventory: normalizeInventory(saved.inventory, this.tools),
       settings: saved.settings || { volume: 0.7, colorblind: false, reducedMotion: false },
+      dayLog: saved.dayLog || {
+        cuts: 0,
+        clean: 0,
+        rough: 0,
+        scalped: 0,
+        oneThird: 0,
+        overgrown: 0,
+        points: 0,
+        ontime: 0,
+        healthy: 0,
+        coinsStart: saved.economy?.coins ?? 0,
+      },
     };
+  }
+
+  setDifficulty(id) {
+    if (!this.state) return;
+    const rules = this.difficultyTable[id] || this.difficultyTable.normal;
+    this.state.difficulty = rules.id;
+    this.state.difficultyRules = rules;
+    this.state.game.dayLengthMinutes = rules.dayLengthMinutes;
+    this.save();
   }
 
   save() {
@@ -262,3 +295,31 @@ export class Game {
     return writeSave(this.config.saveKey, this.state);
   }
 }
+
+function normalizeInventory(inv, tools) {
+  const base = inv || {};
+  const list = (base.tools || [{ id: "scissors", sharpness: 100 }]).map((t) => ({
+    id: t.id,
+    sharpness: t.sharpness ?? 100,
+    fuel: t.fuel ?? 0,
+    line: t.line ?? 0,
+    mowsSinceOil: t.mowsSinceOil ?? 0,
+  }));
+  if (!list.some((t) => t.id === "scissors")) {
+    const scissors = tools.find((t) => t.id === "scissors");
+    list.unshift(makeOwnedTool(scissors || { id: "scissors" }));
+  }
+  return {
+    tools: list,
+    equippedTool: base.equippedTool || "scissors",
+    deckHeight: base.deckHeight ?? 3,
+    supplies: {
+      seed: base.supplies?.seed ?? 0,
+      fertilizer: base.supplies?.fertilizer ?? 0,
+      weedSpray: base.supplies?.weedSpray ?? 0,
+      fuel: base.supplies?.fuel ?? 0,
+      line: base.supplies?.line ?? 0,
+    },
+  };
+}
+

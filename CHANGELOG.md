@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.0 — Phase 1 tools and shop
+
+- Tools 1–8 plus the string trimmer from `tools.json`
+- Shed shop, workbench (sharpen / fuel / oil / line), Q and 1–9 switch
+- Deck height, fuel tanks, reel-mower stall, edge-only trimmer
+- XP, levels, day summary, Easy/Normal/Hard picker
+
 ## v0.1.0 — Phase 0 playable lawn
 
 - Static GitHub Pages site (no build step)

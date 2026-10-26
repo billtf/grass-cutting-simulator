@@ -24,6 +24,9 @@ Then open http://localhost:8000/
 | --- | --- |
 | Move | WASD or arrow keys |
 | Cut (hold) | Space |
+| Open shed | E (stand next to the brown shed) |
+| Switch tool | Q or 1–9 |
+| Deck height | Z / X (mowers) |
 | Height overlay | H |
 | Fast forward (when standing still) | F |
 | Pause | Esc or P |

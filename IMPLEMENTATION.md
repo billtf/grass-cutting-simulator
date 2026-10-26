@@ -67,6 +67,8 @@ The sim modules hold all game state and rules and load their numbers from the da
 
 Goal: walk around a lawn that grows, cut it with scissors, close the tab, come back, and find it where you left it. Tag `v0.1`.
 
+**Status (2026-10-26):** P0.1–P0.12 implemented. Play locally with `python3 -m http.server 8000`. GitHub Pages still needs a human to set **Settings → Pages → Deploy from a branch → `main` → `/`**. Chromebook FPS and school-filter checks wait on that URL.
+
 - [x] **P0.1 Repo and Pages setup (1 h).** Steps in Repo setup above; green canvas live on the Chromebook.
 - [x] **P0.2 Boot and game loop (2 h).** `main.js` loads config JSON, runs a fixed 30 Hz sim tick and a requestAnimationFrame render; pauses when the tab is hidden.
 - [x] **P0.3 Scene manager (1 h).** Push and pop scenes (title, lawn, pause) with enter, exit, update, draw hooks.
@@ -86,19 +88,21 @@ Goal: walk around a lawn that grows, cut it with scissors, close the tab, come b
 
 Goal: a new player earns coins and climbs from scissors to the gas push mower in about 2 hours of play. Tag `v0.2`.
 
-- [ ] **P1.1 Tool data (1 h).** `tools.json` with tiers 1 to 8 and the trimmer, matching the spec table.
-- [ ] **P1.2 Tool system (3 h).** Equip, switch (Q, 1 to 9), cut width, speed, energy cost, quality roll per cell.
-- [ ] **P1.3 Sharpness (2 h).** Sharpness drops per cell; quality scales with it; dull cuts tear (health minus 5, brown for a day).
-- [ ] **P1.4 Deck height (2 h).** Z and X set 1.5 to 4 in on mowers; scalping below 1.5 in; reel mower stalls over 5 in.
-- [ ] **P1.5 Fuel (1.5 h).** Fuel tank and refuel at the shed for gas tools; empty tank stops the mower.
-- [ ] **P1.6 Coins and XP (2 h).** 1 coin per 10 points, daily bonuses, XP to levels, level up toast.
-- [ ] **P1.7 Shed scene (3 h).** Walk into the shed; shop list with lock icons, prices, buy confirm.
-- [ ] **P1.8 Workbench (2 h).** Sharpen for coins or a 10 second timing minigame; refuel; oil change counter.
-- [ ] **P1.9 Trimmer edges (2 h).** Edge cells along fence and beds only the trimmer can cut.
-- [ ] **P1.10 Day summary screen (2 h).** Points breakdown by event, coins earned, one tip of the day.
-- [ ] **P1.11 Title screen and new game (1.5 h).** Continue, New game, Settings; difficulty picker (Easy, Normal, Hard).
-- [ ] **P1.12 Difficulty config (1 h).** `difficulty.json` drives day length, growth, penalties, starting coins.
-- [ ] **P1.13 Balance pass (1 h).** Play to the gas mower; adjust prices so it takes about 2 hours on Normal.
+**Status (2026-10-26):** P1.1–P1.13 implemented on the Phase 1 branch. Spec prices kept. Early XP is 40 + 35 per prior level so daily +100/+50 bonuses can reach the gas mower in a long Chromebook session. Tune `js/data/tools.json` and `js/sim/xp.js` if playtests feel slow.
+
+- [x] **P1.1 Tool data (1 h).** `tools.json` with tiers 1 to 8 and the trimmer, matching the spec table.
+- [x] **P1.2 Tool system (3 h).** Equip, switch (Q, 1 to 9), cut width, speed, energy cost, quality roll per cell.
+- [x] **P1.3 Sharpness (2 h).** Sharpness drops per cell; quality scales with it; dull cuts tear (health minus 5, brown for a day).
+- [x] **P1.4 Deck height (2 h).** Z and X set 1.5 to 4 in on mowers; scalping below 1.5 in; reel mower stalls over 5 in.
+- [x] **P1.5 Fuel (1.5 h).** Fuel tank and refuel at the shed for gas tools; empty tank stops the mower.
+- [x] **P1.6 Coins and XP (2 h).** 1 coin per 10 points, daily bonuses, XP to levels, level up toast.
+- [x] **P1.7 Shed scene (3 h).** Walk into the shed; shop list with lock icons, prices, buy confirm.
+- [x] **P1.8 Workbench (2 h).** Sharpen for coins or a 10 second timing minigame; refuel; oil change counter.
+- [x] **P1.9 Trimmer edges (2 h).** Edge cells along fence and beds only the trimmer can cut.
+- [x] **P1.10 Day summary screen (2 h).** Points breakdown by event, coins earned, one tip of the day.
+- [x] **P1.11 Title screen and new game (1.5 h).** Continue, New game, Settings; difficulty picker (Easy, Normal, Hard).
+- [x] **P1.12 Difficulty config (1 h).** `difficulty.json` drives day length, growth, penalties, starting coins.
+- [x] **P1.13 Balance pass (1 h).** Play to the gas mower; adjust prices so it takes about 2 hours on Normal.
 
 **Done when:** every tier 1 to 8 can be bought and feels faster than the last, and the one third rule penalty shows a tip explaining it.
 
