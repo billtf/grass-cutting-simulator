@@ -41,6 +41,8 @@ export function createDebug() {
           <button data-act="coins">+500 coins</button>
           <button data-act="xp">+1 level</button>
           <button data-act="grow">Grow all cells</button>
+          <button data-act="dry">Dry the lawn</button>
+          <button data-act="rain">Set rain today</button>
         </div>
       `);
       this.panel.addEventListener("click", (e) => {
@@ -76,6 +78,14 @@ export function createDebug() {
             seasonMult: 1,
             waterMultStub: 1,
           });
+        }
+        if (act === "dry") {
+          game.state.lawn.moisture.fill(8);
+          game.state.lawn.dirty.fill(1);
+          game.state.lawn.allDirty = true;
+        }
+        if (act === "rain") {
+          game.state.game.weatherToday = "rain";
         }
         this.render(game);
       });
