@@ -19,7 +19,13 @@ function lerpHex(a, b, t) {
     .padStart(2, "0")}`;
 }
 
-export function heightBandColor(height) {
+export function heightBandColor(height, colorblind = false) {
+  if (colorblind) {
+    if (height < 2.5) return "#66c2a5";
+    if (height <= 3.5) return "#3288bd";
+    if (height <= 6) return "#fee08b";
+    return "#d53e4f";
+  }
   if (height < 2.5) return "#7cb342";
   if (height <= 3.5) return "#43a047";
   if (height <= 6) return "#fdd835";
@@ -62,9 +68,9 @@ export const KIND_COLOR = {
   4: "#a1887f",
 };
 
-export function cellFill(kind, height, health, moisture, overlay) {
+export function cellFill(kind, height, health, moisture, overlay, colorblind = false) {
   if (kind !== 0) return KIND_COLOR[kind] || "#333";
-  if (overlay === "height") return heightBandColor(height);
+  if (overlay === "height") return heightBandColor(height, colorblind);
   if (overlay === "moisture") return moistureColor(moisture);
   if (overlay === "health") return healthColor(health);
   return grassColor(height, health);

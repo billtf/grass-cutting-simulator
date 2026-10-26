@@ -6,7 +6,7 @@ This repo is named `grass-cutting-simulator`. The game name on screen is **Grass
 
 **Play (GitHub Pages):** https://billtf.github.io/grass-cutting-simulator/
 
-No install, no login, no server. It is meant to run in Chrome on a school Chromebook.
+No install, no login, no server. It is meant to run in Chrome on a school Chromebook. Touch controls appear on touchscreens.
 
 ## Open locally
 

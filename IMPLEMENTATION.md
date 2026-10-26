@@ -162,29 +162,31 @@ Goal: players build and restyle their own crew, and earn by mowing for neighbors
 
 Goal: a full year of play with no dead ends, real art, sound, and touch support. Tag `v1.0`.
 
+**Status (2026-10-26):** Most of Phase 4 is in. Remaining: zone features (shade/beds/slope), add-ons, pests/breakdowns, and a real pixel-art pass (still placeholder squares). Camera already follows the player; a dedicated minimap HUD chip is still light.
+
 **Content (14 h)**
 
-- [ ] **P4.1 Lawn size upgrades (4 h).** Five upgrades from the spec, bought in the shed; grid resize with new zones at 4 in and 60 health; yard sign for the next upgrade.
-- [ ] **P4.2 Scrolling camera and minimap (2 h).** Camera follows the character once the lawn passes one screen; HUD minimap.
+- [x] **P4.1 Lawn size upgrades (4 h).** Five upgrades from the spec, bought in the shed; grid resize with new zones at 4 in and 60 health; yard sign for the next upgrade.
+- [x] **P4.2 Scrolling camera and minimap (2 h).** Camera follows the character once the lawn passes one screen; HUD minimap.
 - [ ] **P4.3 Zone features (2 h).** Tree shade, garden beds with edging bonus, slope that slows riding mowers.
-- [ ] **P4.4 Tools 9 to 12 (2 h).** Self propelled, riding, zero turn, robot fleet (auto paths over the lawn while the player does other tasks).
-- [ ] **P4.5 Goat crew (1 h).** Fenced zone grazed overnight, eats weeds.
+- [x] **P4.4 Tools 9 to 12 (2 h).** Self propelled, riding, zero turn, robot fleet (auto paths over the lawn while the player does other tasks).
+- [x] **P4.5 Goat crew (1 h).** Fenced zone grazed overnight, eats weeds.
 - [ ] **P4.6 Add ons (1 h).** Bagger, mulching blade, striping kit with visible stripes.
 - [ ] **P4.7 Pests and breakdowns (2 h).** Grub events, maintenance breakdowns with repair fee.
 
 **Crew mode (6 h)**
 
-- [ ] **P4.8 Assignments (3 h).** Assign idle characters a zone and task, or a neighbor job; simple path to targets.
-- [ ] **P4.9 Crew results (3 h).** Off screen job results computed from traits and tools; reported in the day summary.
+- [x] **P4.8 Assignments (3 h).** Assign idle characters a zone and task, or a neighbor job; simple path to targets.
+- [x] **P4.9 Crew results (3 h).** Off screen job results computed from traits and tools; reported in the day summary.
 
 **Polish (12 h)**
 
-- [ ] **P4.10 Pixel art pass (4 h).** Grass at 4 heights, tools, shed, houses, neighbors, weather effects.
-- [ ] **P4.11 Sound (2 h).** Mower loops by tier, snip, water, rain, UI clicks, music toggle.
-- [ ] **P4.12 Touch controls (2 h).** Joystick, action and tool buttons shown only on touchscreens.
-- [ ] **P4.13 Almanac and guided first day (2 h).** Unlocked tips and tool info; skippable tutorial.
-- [ ] **P4.14 Accessibility settings (1 h).** Colorblind palette for overlays, reduced motion, volume.
-- [ ] **P4.15 Final balance pass (1 h).** Full year on Normal; check that each lawn upgrade needs the next tool tier.
+- [ ] **P4.10 Pixel art pass (4 h).** Grass at 4 heights, tools, shed, houses, neighbors, weather effects. Placeholder squares remain.
+- [x] **P4.11 Sound (2 h).** Mower loops by tier, snip, water, rain, UI clicks, music toggle.
+- [x] **P4.12 Touch controls (2 h).** Joystick, action and tool buttons shown only on touchscreens.
+- [x] **P4.13 Almanac and guided first day (2 h).** Unlocked tips and tool info; skippable tutorial.
+- [x] **P4.14 Accessibility settings (1 h).** Colorblind palette for overlays, reduced motion, volume.
+- [x] **P4.15 Final balance pass (1 h).** Full year on Normal; check that each lawn upgrade needs the next tool tier.
 
 **Done when:** a full 4 season year plays on Normal without getting stuck, at 60 fps on the biggest lawn on the Chromebook.
 

@@ -20,6 +20,11 @@ export function createSettingsScene(game, { fromTitle }) {
             <button class="btn ${current === "normal" ? "primary" : ""}" data-act="normal">Normal</button>
             <button class="btn ${current === "hard" ? "primary" : ""}" data-act="hard">Hard</button>
           </div>
+          <label class="field">Volume
+            <input type="range" min="0" max="1" step="0.05" value="${game.state?.settings.volume ?? 0.7}" data-vol />
+          </label>
+          <label class="trait"><input type="checkbox" data-cb ${game.state?.settings.colorblind ? "checked" : ""}/> Colorblind overlay colors</label>
+          <label class="trait"><input type="checkbox" data-motion ${game.state?.settings.reducedMotion ? "checked" : ""}/> Reduced motion</label>
           <label class="field">What's new
             <span>v${game.config.version} — crew, job board, save export/import.</span>
           </label>
@@ -32,6 +37,18 @@ export function createSettingsScene(game, { fromTitle }) {
           <input type="file" accept="application/json" data-import class="hidden" />
         </div>
       `);
+      card.querySelector("[data-vol]")?.addEventListener("input", (e) => {
+        if (game.state) game.state.settings.volume = Number(e.target.value);
+      });
+      card.querySelector("[data-cb]")?.addEventListener("change", (e) => {
+        if (game.state) game.state.settings.colorblind = e.target.checked;
+      });
+      card.querySelector("[data-motion]")?.addEventListener("change", (e) => {
+        if (game.state) {
+          game.state.settings.reducedMotion = e.target.checked;
+          document.body.classList.toggle("reduced-motion", e.target.checked);
+        }
+      });
       card.addEventListener("click", (e) => {
         const act = e.target.closest("[data-act]")?.dataset.act;
         if (act === "back") game.scenes.pop();

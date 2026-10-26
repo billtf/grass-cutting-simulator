@@ -16,6 +16,9 @@ import { traitValue } from "../../sim/traits.js";
 import { createJobBoardScene } from "./jobs.js";
 import { createProfilesScene } from "./profiles.js";
 import { createCreatorScene } from "./creator.js";
+import { nextUpgrade, buyUpgrade } from "../../sim/upgrades.js";
+import { rebuildAtlas } from "../../render/lawn.js";
+import { beep } from "../../audio.js";
 import { activeCharacter } from "../../sim/xp.js";
 
 export function createShedScene(game) {
@@ -54,6 +57,7 @@ export function createShedScene(game) {
           <button class="btn ${tab === "jobs" ? "primary" : ""}" data-act="tab-jobs">Jobs</button>
           <button class="btn" data-act="crew">Crew</button>
           <button class="btn" data-act="mirror">Mirror</button>
+          <button class="btn ${tab === "land" ? "primary" : ""}" data-act="tab-land">Land</button>
         </div>
         <div class="shed-body"></div>
         <div class="btn-col">
@@ -63,6 +67,7 @@ export function createShedScene(game) {
     `);
     const body = card.querySelector(".shed-body");
     if (tab === "shop") body.appendChild(shopList(game, character));
+    else if (tab === "land") body.appendChild(landList(game, character));
     else body.appendChild(bench(game, equipped, owned));
 
     card.addEventListener("click", (e) => {
@@ -77,6 +82,20 @@ export function createShedScene(game) {
       if (act === "tab-bench") {
         tab = "bench";
         render();
+      }
+      if (act === "tab-land") {
+        tab = "land";
+        render();
+      }
+      if (act === "buy-land") {
+        const next = nextUpgrade(state.game.zonesOwned, game.upgrades);
+        if (next) {
+          const result = buyUpgrade(state, next, character);
+          showToast(game.hud, result.ok ? `Bought ${next.name}!` : result.reason);
+          if (result.ok && game.atlas) rebuildAtlas(game.atlas, state.lawn);
+          beep("win", state.settings.volume ?? 0.7);
+          render();
+        }
       }
       if (act === "tab-jobs") {
         game.scenes.push(createJobBoardScene(game));
@@ -146,6 +165,23 @@ export function createShedScene(game) {
       const host = card.querySelector("[data-mini]");
       if (host) drawMini(host, minigame);
     }
+  }
+
+  function landList(game, character) {
+    const next = nextUpgrade(game.state.game.zonesOwned, game.upgrades);
+    const owned = (game.state.game.zonesOwned || []).join(", ");
+    return el(`
+      <div>
+        <p>Owned: ${owned}</p>
+        ${
+          next
+            ? `<div class="shop-row"><div><strong>Next: ${next.name}</strong><div class="fine">${next.width}×${next.height} · ${next.cost} coins · Lv ${next.unlockLevel}</div></div>
+               <button class="btn primary" data-act="buy-land">Buy land</button></div>`
+            : "<p>You own the whole lot.</p>"
+        }
+        <p class="fine">A yard sign will show this price so you know what you are saving for.</p>
+      </div>
+    `);
   }
 
   function shopList(game, character) {
