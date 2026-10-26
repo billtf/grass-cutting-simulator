@@ -1,0 +1,35 @@
+{
+  "easy": {
+    "id": "easy",
+    "label": "Easy",
+    "dayLengthMinutes": 10,
+    "growthSpeed": 0.7,
+    "oneThirdPenalty": 0,
+    "oneThirdWarningOnly": true,
+    "hoaWarningsBeforeFine": 5,
+    "forecastAccuracy": 1,
+    "startingCoins": 500
+  },
+  "normal": {
+    "id": "normal",
+    "label": "Normal",
+    "dayLengthMinutes": 6,
+    "growthSpeed": 1,
+    "oneThirdPenalty": 15,
+    "oneThirdWarningOnly": false,
+    "hoaWarningsBeforeFine": 3,
+    "forecastAccuracy": 0.9,
+    "startingCoins": 250
+  },
+  "hard": {
+    "id": "hard",
+    "label": "Hard",
+    "dayLengthMinutes": 3,
+    "growthSpeed": 1.3,
+    "oneThirdPenalty": 25,
+    "oneThirdWarningOnly": false,
+    "hoaWarningsBeforeFine": 2,
+    "forecastAccuracy": 0.75,
+    "startingCoins": 100
+  }
+}

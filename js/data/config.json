@@ -1,0 +1,45 @@
+{
+  "name": "Grass Friend",
+  "version": "0.1.0",
+  "schemaVersion": 1,
+  "saveKey": "grassfriend.save.v1",
+  "tileSize": 16,
+  "scale": 3,
+  "simHz": 30,
+  "lawn": {
+    "width": 32,
+    "height": 24,
+    "minHeight": 0.5,
+    "maxHeight": 12,
+    "idealMin": 2.5,
+    "idealMax": 3.5,
+    "overgrownHeight": 6,
+    "scalpHeight": 1.5,
+    "startHeightMin": 2.5,
+    "startHeightMax": 4.0,
+    "startMoisture": 55,
+    "startHealth": 90
+  },
+  "growth": {
+    "baseRate": 0.02
+  },
+  "clock": {
+    "hoursPerDay": 24,
+    "startHour": 7
+  },
+  "player": {
+    "speed": 80,
+    "radius": 6
+  },
+  "scoring": {
+    "cleanCut": 2,
+    "roughCut": 1,
+    "overgrownPerHour": 1,
+    "scalped": 10
+  },
+  "cut": {
+    "scissorsSeconds": 2,
+    "scissorsTarget": 3
+  },
+  "fastForward": 8
+}
