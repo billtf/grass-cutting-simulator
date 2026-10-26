@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.0 — Phase 2 lawn care and weather
+
+- Moisture, health, weeds, fertilizer, seed, leaves, aeration
+- Watering can through timed sprinklers, time-of-day efficiency, water bill
+- Seeded daily weather and 14-day seasons; tomorrow on the HUD
+- Weekly HOA inspection, warnings, and a coin fine
+- H cycles height / moisture / health maps; tips log to the almanac
+
 ## v0.2.0 — Phase 1 tools and shop
 
 - Tools 1–8 plus the string trimmer from `tools.json`

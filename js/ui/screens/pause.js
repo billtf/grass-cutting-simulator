@@ -1,5 +1,6 @@
 import { el, showOverlay, hideOverlay } from "../dom.js";
 import { pressed } from "../../input.js";
+import { createAlmanacScene } from "./almanac.js";
 
 export function createPauseScene(game) {
   return {
@@ -12,6 +13,7 @@ export function createPauseScene(game) {
           <h2>Paused</h2>
           <div class="btn-col">
             <button class="btn primary" data-act="resume">Resume</button>
+            <button class="btn" data-act="almanac">Almanac</button>
             <button class="btn" data-act="settings">Settings</button>
             <button class="btn" data-act="title">Title screen</button>
           </div>
@@ -21,6 +23,7 @@ export function createPauseScene(game) {
       card.addEventListener("click", (e) => {
         const act = e.target.closest("[data-act]")?.dataset.act;
         if (act === "resume") game.scenes.pop();
+        if (act === "almanac") game.scenes.push(createAlmanacScene(game));
         if (act === "settings") game.openSettings();
         if (act === "title") {
           game.save();

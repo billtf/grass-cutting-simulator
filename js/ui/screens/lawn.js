@@ -3,7 +3,7 @@ import { advanceClock, formatClock } from "../../clock.js";
 import { tickGrowth, countOvergrown, isShed, isCuttable, averageHeight, grassCellCount } from "../../sim/lawn.js";
 import { pointsForCut, applyPoints, overgrownPenalty } from "../../sim/scoring.js";
 import { movePlayer, tileAt, facingTile } from "../../entities/player.js";
-import { findTool, cycleTool, selectSlot, cutSecondsFor, targetHeightFor, nudgeDeck } from "../../entities/tools.js";
+import { findTool, findAnyTool, cycleTool, selectSlot, cutSecondsFor, targetHeightFor, nudgeDeck } from "../../entities/tools.js";
 import { follow } from "../../render/camera.js";
 import { paintDirty, drawAtlas, drawPlayer, drawCutProgress } from "../../render/lawn.js";
 import { updateHud, showToast } from "../hud.js";
@@ -11,6 +11,26 @@ import { swathTiles, toolCanCutCell, toolBlockedReason, performSwath } from "../
 import { activeCharacter, addXp } from "../../sim/xp.js";
 import { createShedScene } from "./shed.js";
 import { createSummaryScene, pickTip } from "./summary.js";
+import {
+  applyWater,
+  applyFertilizer,
+  applyWeed,
+  applySpray,
+  applySeed,
+  applyLeaves,
+  applyAerate,
+  diskTiles,
+  tickMoistureHealth,
+  tickDailyCare,
+  tickSpray,
+  addFallLeaves,
+  ensureExtras,
+} from "../../sim/care.js";
+import { weatherStats, weatherForDay, labelWeather } from "../../sim/weather.js";
+import { SEASON_MULT } from "../../sim/lawn.js";
+import { inspectLawn, applyInspection } from "../../sim/hoa.js";
+import { unlockTip } from "../../sim/tips.js";
+import { seasonForDay } from "../../clock.js";
 
 export function createLawnScene(game) {
   return {
@@ -18,7 +38,7 @@ export function createLawnScene(game) {
     blocksUpdate: true,
     enter() {
       game.hudEl.classList.add("active");
-      updateHud(game.hud, game.state, game.tools);
+      updateHud(game.hud, game.state, game.allTools, game.weatherTable);
     },
     exit() {
       game.hudEl.classList.remove("active");
@@ -30,26 +50,29 @@ export function createLawnScene(game) {
         return;
       }
       if (input.pressed("overlay")) {
-        state.overlay = state.overlay === "height" ? "none" : "height";
-        showToast(
-          g.hud,
-          state.overlay === "height"
-            ? "Height map: green good, yellow tall, red overgrown"
-            : "Height map off"
-        );
+        const order = ["none", "height", "moisture", "health"];
+        const i = order.indexOf(state.overlay);
+        state.overlay = order[(i + 1) % order.length];
+        const labels = {
+          none: "Overlay off",
+          height: "Height map: green good, yellow tall, red overgrown",
+          moisture: "Moisture map: blue is wet, pale is dry",
+          health: "Health map: green strong, orange weak, brown dead",
+        };
+        showToast(g.hud, labels[state.overlay]);
       }
       if (input.pressed("debug")) g.toggleDebug();
       if (input.pressed("switchTool")) {
-        const id = cycleTool(state.inventory, g.tools, 1);
-        showToast(g.hud, findTool(g.tools, id).name, 900);
+        const id = cycleTool(state.inventory, g.allTools, 1);
+        showToast(g.hud, findAnyTool(g.tools, g.careTools, id).name, 900);
       }
       for (let n = 1; n <= 9; n++) {
         if (input.pressed(`slot${n}`)) {
-          const id = selectSlot(state.inventory, g.tools, n - 1);
-          showToast(g.hud, findTool(g.tools, id).name, 900);
+          const id = selectSlot(state.inventory, g.allTools, n - 1);
+          showToast(g.hud, findAnyTool(g.tools, g.careTools, id).name, 900);
         }
       }
-      const equipped = findTool(g.tools, state.inventory.equippedTool);
+      const equipped = findAnyTool(g.tools, g.careTools, state.inventory.equippedTool);
       if (input.pressed("deckDown")) {
         const h = nudgeDeck(state.inventory, equipped, -1);
         if (equipped.deckHeight) showToast(g.hud, `Deck ${h} inches`, 900);
@@ -85,7 +108,10 @@ export function createLawnScene(game) {
       if (!idle) state.clock.fastForward = false;
       const rate = state.clock.fastForward ? g.config.fastForward : 1;
 
-      handleCut(g, dt);
+      if (equipped.role) handleCare(g, dt, equipped);
+      else handleCut(g, dt);
+
+      runPlacedWater(g);
 
       const nearby = facingTile(state.player, g.config.tileSize);
       const here = tileAt(state.player, g.config.tileSize);
@@ -102,7 +128,7 @@ export function createLawnScene(game) {
       }
 
       follow(g.camera, state.player, state.lawn, g.config.tileSize);
-      updateHud(g.hud, state, g.tools);
+      updateHud(g.hud, state, g.allTools, g.weatherTable);
       if (g.debug.open) g.debug.tick(g, dt);
       void here;
       void moving;
@@ -195,12 +221,11 @@ function handleCut(game, dt) {
   const levels = addXp(character, gained);
   if (levels) showToast(game.hud, `Level up! You are level ${character.level}.`);
   else if (oneThird) {
-    showToast(
-      game.hud,
-      "One third rule: do not cut more than one third of the blade. The grass is stressed."
-    );
+    const tip = unlockTip(state, "onethird");
+    showToast(game.hud, tip || "Do not cut more than one third of the blade.");
   } else if (scalped) {
-    showToast(game.hud, "Scalped: that patch is too short. Raise the deck or aim for 3 inches.");
+    const tip = unlockTip(state, "scalp");
+    showToast(game.hud, tip || "Scalped: that patch is too short. Aim for 3 inches.");
   } else if (gained > 0) {
     showToast(game.hud, `+${gained} from the cut`, 800);
   }
@@ -219,12 +244,24 @@ function logCut(state, scored, result) {
 
 function onHour(game, hour) {
   const state = game.state;
+  ensureExtras(state.lawn);
+  const season = state.game.season || seasonForDay(state.clock.day);
   const extras = {
-    seasonMult: 1,
-    waterMultStub: 1,
+    seasonMult: SEASON_MULT[season] ?? 1,
     growthSpeed: state.difficultyRules.growthSpeed,
   };
   const grown = tickGrowth(state.lawn, game.config, extras);
+  const weather = weatherStats(state.game.weatherToday, game.weatherTable);
+  const careTick = tickMoistureHealth(state.lawn, weather, game.care, state.rng, season);
+  tickSpray(state.lawn);
+  if (careTick.browned > 40) {
+    const tip = unlockTip(state, "dry");
+    if (tip) showToast(game.hud, tip);
+  }
+  if (careTick.fungus > 20) {
+    const tip = unlockTip(state, "fungus");
+    if (tip) showToast(game.hud, tip);
+  }
   const penalty = overgrownPenalty(grown.overgrownCount, game.config);
   if (penalty > 0) {
     applyPoints(state.economy, -penalty);
@@ -233,8 +270,18 @@ function onHour(game, hour) {
       state.dayLog.points -= penalty;
     }
   }
+  if (careTick.dead > 0 && state.dayLog) {
+    applyPoints(state.economy, -Math.min(25, careTick.dead));
+  }
   if (hour === 12) {
     showToast(game.hud, `Noon · ${formatClock(state.clock)}`);
+  }
+  if (hour === 6 && state.care?.timed) {
+    const hose = game.careTools.find((t) => t.auto);
+    if (hose) {
+      const tiles = diskTiles(16, 12, hose.radius);
+      applyWater(state.lawn, tiles, hose.amount, 6, game.care.waterBillPerCell);
+    }
   }
 }
 
@@ -266,6 +313,45 @@ function onDayEnd(game) {
   character.needs.energy = 100;
   character.stats.lawnsMowed += 1;
 
+  const season = seasonForDay(state.clock.day, game.weatherTable.daysPerSeason);
+  const daily = tickDailyCare(state.lawn, game.care, season);
+  if (season === "fall") addFallLeaves(state.lawn, state.rng);
+  state.game.season = season;
+
+  const todayActual = state.game.weatherTomorrowActual || state.game.weatherTomorrow;
+  state.game.weatherToday = todayActual;
+  const next = weatherForDay(
+    state.rng,
+    state.clock.day + 1,
+    state.difficultyRules.forecastAccuracy,
+    game.weatherTable
+  );
+  state.game.weatherTomorrow = next.forecast;
+  state.game.weatherTomorrowActual = next.actual;
+
+  let hoaLine = "Not this week";
+  if (state.clock.day % 7 === 1 && state.clock.day > 1) {
+    const result = inspectLawn(state.lawn, 2.5, 3.5);
+    const judged = applyInspection(state, result, {
+      passPoints: game.config.scoring.inspectionPass,
+      failPoints: game.config.scoring.inspectionFail,
+      fineCoins: game.config.scoring.hoaFine,
+    });
+    if (judged.kind === "pass") {
+      hoaLine = `Pass +${judged.points}`;
+      applyPoints(state.economy, 0);
+    } else {
+      hoaLine = `Fail ${judged.points}${judged.fine ? ` and ${judged.fine} coin fine` : ""}`;
+      const tip = unlockTip(state, "hoa");
+      if (tip) showToast(game.hud, tip, 4000);
+    }
+  }
+
+  const whyDry =
+    avgHealth < 60
+      ? "The lawn browned because it stayed dry. Water in the morning."
+      : pickTip(game.tips, state.clock.day);
+
   const coinsNow = state.economy.coins;
   const coinsEarned = coinsNow - (state.dayLog?.coinsStart || coinsNow);
   const lines = [
@@ -275,6 +361,8 @@ function onDayEnd(game) {
     { label: "Overgrown hours", value: `${state.dayLog?.overgrown || 0}` },
     { label: "On-time mow", value: state.dayLog?.ontime ? "+100" : "0" },
     { label: "Healthy lawn day", value: state.dayLog?.healthy ? "+50" : "0" },
+    { label: "HOA", value: hoaLine },
+    { label: "Revived patches", value: String(daily.revived) },
     { label: "Coins now", value: `${coinsNow} (${coinsEarned >= 0 ? "+" : ""}${coinsEarned} today)` },
     { label: "Overgrown cells", value: `${over} / ${grass}` },
   ];
@@ -285,10 +373,98 @@ function onDayEnd(game) {
     createSummaryScene(game, {
       day: state.clock.day - 1,
       lines,
-      tip: pickTip(game.tips, state.clock.day),
-      forecast: "Sunny (forecasts arrive in the weather update)",
+      tip: whyDry,
+      forecast: `${labelWeather(state.game.weatherTomorrow, game.weatherTable)} (tomorrow)`,
     })
   );
+}
+
+function handleCare(game, dt, tool) {
+  const state = game.state;
+  ensureExtras(state.lawn);
+  const origin = tileAt(state.player, game.config.tileSize);
+  const face = facingTile(state.player, game.config.tileSize);
+  const center = isCuttable(state.lawn, face.x, face.y) ? face : origin;
+  if (!input.down("use")) {
+    state.player.cutProgress = 0;
+    state.player.cutTarget = null;
+    return;
+  }
+  const key = `${tool.id}:${center.x},${center.y}`;
+  if (state.player.cutKey !== key) {
+    state.player.cutKey = key;
+    state.player.cutProgress = 0;
+    state.player.cutTarget = center;
+  }
+  state.player.cutProgress += dt / 0.8;
+  if (state.player.cutProgress < 1) return;
+  state.player.cutProgress = 0;
+  const tiles = diskTiles(center.x, center.y, tool.radius || 0);
+  const character = activeCharacter(state);
+  const hour = state.clock.hour;
+  let message = "";
+
+  if (tool.place) {
+    state.care.sprinklers = state.care.sprinklers || [];
+    state.care.sprinklers.push({ x: center.x, y: center.y, radius: tool.radius, amount: tool.amount });
+    message = "Sprinkler placed. It waters this patch each hour.";
+  } else if (tool.auto) {
+    state.care.timed = true;
+    message = "Timed sprinklers will run at 6 AM.";
+  } else if (tool.role === "water") {
+    const result = applyWater(state.lawn, tiles, tool.amount, hour, game.care.waterBillPerCell);
+    state.economy.coins = Math.max(0, state.economy.coins - result.bill);
+    if (result.full) {
+      applyPoints(state.economy, game.config.scoring.morningWater);
+      if (state.dayLog) state.dayLog.morning = (state.dayLog.morning || 0) + 1;
+    }
+    if (result.fungus) {
+      const tip = unlockTip(state, "fungus");
+      message = tip || "Evening water can grow fungus.";
+    } else {
+      message = `Watered ${result.count} cells. Bill ${result.bill} coins.`;
+    }
+  } else if (tool.role === "fertilizer") {
+    const result = applyFertilizer(state.lawn, tiles, tool.amount, game.care.fertilizerBurnAt, game.care.fertilizerBurn);
+    if (result.burned) {
+      const tip = unlockTip(state, "burn");
+      message = tip || "Too much fertilizer burned some grass.";
+    } else message = `Fed ${result.count} cells.`;
+  } else if (tool.role === "weed") {
+    const result = applyWeed(state.lawn, tiles, tool.amount);
+    applyPoints(state.economy, result.cleared * game.config.scoring.weedCleared);
+    if (result.cleared) {
+      const tip = unlockTip(state, "weeds");
+      message = tip || `Pulled weeds on ${result.cleared} cells. +${result.cleared * 5}`;
+    } else message = "No weeds here.";
+  } else if (tool.role === "spray") {
+    applySpray(state.lawn, tiles);
+    message = "Spray needs 24 hours with no rain to work.";
+  } else if (tool.role === "seed") {
+    const result = applySeed(state.lawn, tiles, game.care.seedDays);
+    const tip = result.seeded ? unlockTip(state, "seed") : null;
+    message = tip || (result.seeded ? `Seeded ${result.seeded} dead patches.` : "Seed only works on dead brown patches.");
+  } else if (tool.role === "leaves") {
+    const result = applyLeaves(state.lawn, tiles);
+    const tip = result.cleared ? unlockTip(state, "leaves") : null;
+    message = tip || (result.cleared ? `Raked ${result.cleared} cells.` : "No leaves here.");
+  } else if (tool.role === "aerate") {
+    const result = applyAerate(state.lawn, tiles, tool.amount);
+    message = `Aerated ${result.count} cells. Water soaks in better for a week.`;
+  }
+
+  character.needs.energy = Math.max(0, character.needs.energy - (tool.energy || 0.4));
+  if (message) showToast(game.hud, message);
+}
+
+function runPlacedWater(game) {
+  const state = game.state;
+  if (!state.care?.sprinklers?.length) return;
+  if (runPlacedWater._hour === Math.floor(state.clock.hour)) return;
+  runPlacedWater._hour = Math.floor(state.clock.hour);
+  for (const s of state.care.sprinklers) {
+    applyWater(state.lawn, diskTiles(s.x, s.y, s.radius), s.amount, state.clock.hour, game.care.waterBillPerCell);
+  }
 }
 
 export function resetDayLog(state) {

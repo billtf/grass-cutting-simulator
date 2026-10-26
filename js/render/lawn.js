@@ -53,6 +53,18 @@ export function paintDirty(atlas, lawn, overlay) {
         ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
         ctx.fillRect(x * tileSize, y * tileSize, tileSize, 2);
       }
+      if (lawn.health[i] === 0) {
+        ctx.fillStyle = "#6d4c41";
+        ctx.fillRect(x * tileSize + 3, y * tileSize + 3, 4, 4);
+      }
+      if (lawn.weed && lawn.weed[i] > 0) {
+        ctx.fillStyle = "#fdd835";
+        ctx.fillRect(x * tileSize + 2, y * tileSize + 8, 3, 3);
+      }
+      if (lawn.leafCover && lawn.leafCover[i] > 0) {
+        ctx.fillStyle = "rgba(141, 110, 99, 0.45)";
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      }
     }
     if (lawn.kind[i] === 2) {
       ctx.fillStyle = "#8d6e63";

@@ -14,6 +14,8 @@ import { effectiveQuality } from "../js/entities/tools.js";
 import { addXp, xpToNext } from "../js/sim/xp.js";
 import { canBuyTool, buyTool, makeOwnedTool } from "../js/sim/shop.js";
 import { isEdgeCell, toolCanCutCell, toolBlockedReason, swathTiles } from "../js/sim/cutting.js";
+import { waterEfficiency, applyWater } from "../js/sim/care.js";
+import { weatherForDay } from "../js/sim/weather.js";
 
 const results = document.getElementById("results");
 const summary = document.getElementById("summary");
@@ -191,10 +193,33 @@ assert(
 const swath = swathTiles({ x: 4, y: 5 }, "up", 3);
 assert("Width-3 swath is 3 tiles", swath.length === 3 && swath.every((t) => t.y === 4), JSON.stringify(swath));
 
-skip("Watering time", "Phase 2 — not implemented yet");
+assert("Watering time: 7am is full, noon is 60%", waterEfficiency(7) === 1 && waterEfficiency(12) === 0.6, `${waterEfficiency(7)} ${waterEfficiency(12)}`);
+
+const wetLawn = createLawn(8, 8, createRng(4), config);
+wetLawn.moisture[5 * 8 + 4] = 40;
+const morning = applyWater(wetLawn, [{ x: 4, y: 5 }], 20, 7, 0);
+const noonLawn = createLawn(8, 8, createRng(4), config);
+noonLawn.moisture[5 * 8 + 4] = 40;
+const noon = applyWater(noonLawn, [{ x: 4, y: 5 }], 20, 12, 0);
+assert("Morning water adds more than noon", morning.count === 1 && wetLawn.moisture[5 * 8 + 4] > noonLawn.moisture[5 * 8 + 4], `${wetLawn.moisture[5 * 8 + 4]} vs ${noonLawn.moisture[5 * 8 + 4]}`);
+
+const table = {
+  daysPerSeason: 14,
+  types: { sunny: { dry: 5, rain: 0, label: "Sunny" }, rain: { dry: 0, rain: 14, label: "Rain" } },
+  weights: { spring: { sunny: 1, rain: 0 }, summer: { sunny: 1, rain: 0 }, fall: { sunny: 1, rain: 0 }, winter: { sunny: 1, rain: 0 } },
+};
+const a = [];
+const b = [];
+const ra = createRng(777);
+const rb = createRng(777);
+for (let d = 1; d <= 30; d++) {
+  a.push(weatherForDay(ra, d, 1, table).actual);
+  b.push(weatherForDay(rb, d, 1, table).actual);
+}
+assert("Seeded weather: same seed, same 30 days", a.join() === b.join(), a.slice(0, 5).join(","));
+
 skip("Pay formula", "Phase 3 — not implemented yet");
 skip("Traits", "Phase 3 — not implemented yet");
-skip("Seeded weather 30-day forecast", "Phase 2 — not implemented yet");
 
 const fakeState = {
   schemaVersion: 1,

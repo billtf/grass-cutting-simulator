@@ -38,7 +38,7 @@ export function createShedScene(game) {
   function render() {
     const state = game.state;
     const character = activeCharacter(state);
-    const equipped = findTool(game.tools, state.inventory.equippedTool);
+    const equipped = findTool(game.allTools, state.inventory.equippedTool);
     const owned = ownedTool(state, equipped.id);
     const card = el(`
       <div class="panel wide">
@@ -73,7 +73,7 @@ export function createShedScene(game) {
       }
       if (act.startsWith("buy-")) {
         const id = act.slice(4);
-        const tool = findTool(game.tools, id);
+        const tool = findTool(game.allTools, id);
         const result = buyTool(state, tool, character);
         showToast(game.hud, result.ok ? `Bought ${tool.name}!` : result.reason);
         if (result.ok) {
@@ -125,15 +125,18 @@ export function createShedScene(game) {
 
   function shopList(game, character) {
     const wrap = el(`<div class="shop-list"></div>`);
-    for (const tool of game.tools) {
+    for (const tool of game.allTools) {
       const owned = !!ownedTool(game.state, tool.id);
       const check = canBuyTool(game.state, tool, character);
       const lock = (character.level || 1) < tool.unlockLevel;
+      const detail = tool.role
+        ? `${tool.role} · ${tool.cost ? tool.cost + " coins" : "free"} · Lv ${tool.unlockLevel}`
+        : `Tier ${tool.tier} · width ${tool.width} · ${tool.cost ? tool.cost + " coins" : "free"} · Lv ${tool.unlockLevel}`;
       const row = el(`
         <div class="shop-row">
           <div>
             <strong>${lock ? "🔒 " : ""}${tool.name}</strong>
-            <div class="fine">Tier ${tool.tier} · width ${tool.width} · ${tool.cost ? tool.cost + " coins" : "free"} · Lv ${tool.unlockLevel}</div>
+            <div class="fine">${detail}</div>
           </div>
           <button class="btn ${owned ? "" : "primary"}" data-act="buy-${tool.id}" ${owned || !check.ok ? "disabled" : ""}>
             ${owned ? "Owned" : lock ? "Locked" : "Buy"}

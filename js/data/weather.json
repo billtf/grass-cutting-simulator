@@ -1,0 +1,16 @@
+{
+  "daysPerSeason": 14,
+  "types": {
+    "sunny": { "dry": 5, "rain": 0, "label": "Sunny" },
+    "cloudy": { "dry": 2, "rain": 0, "label": "Cloudy" },
+    "rain": { "dry": 0, "rain": 14, "label": "Rain" },
+    "heat": { "dry": 10, "rain": 0, "label": "Heat wave" },
+    "storm": { "dry": 0, "rain": 22, "label": "Storm" }
+  },
+  "weights": {
+    "spring": { "sunny": 3, "cloudy": 2, "rain": 3, "heat": 0, "storm": 1 },
+    "summer": { "sunny": 4, "cloudy": 1, "rain": 1, "heat": 3, "storm": 1 },
+    "fall": { "sunny": 2, "cloudy": 3, "rain": 3, "heat": 0, "storm": 1 },
+    "winter": { "sunny": 1, "cloudy": 4, "rain": 3, "heat": 0, "storm": 1 }
+  }
+}

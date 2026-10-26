@@ -315,6 +315,28 @@ h1 {
   transform: translateX(-2px);
 }
 
+.almanac-list {
+  list-style: none;
+  padding: 0;
+  max-height: 45vh;
+  overflow: auto;
+}
+
+.almanac-list li {
+  margin: 0 0 10px;
+  padding: 8px;
+  background: #e8f5e9;
+  border-radius: 8px;
+}
+
+.almanac-list li.locked {
+  opacity: 0.55;
+}
+
+.almanac-list p {
+  margin: 4px 0 0;
+}
+
 noscript p {
   padding: 24px;
 }
