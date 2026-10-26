@@ -43,6 +43,21 @@ export function swathTiles(origin, facing, width) {
   return tiles;
 }
 
+/** Standing cell plus the facing swath. Click/tap cuts underfoot, not only the tile ahead. */
+export function cutAttemptTiles(origin, facing, width) {
+  const seen = new Set();
+  const tiles = [];
+  const add = (t) => {
+    const key = `${t.x},${t.y}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    tiles.push(t);
+  };
+  add({ x: origin.x, y: origin.y });
+  for (const t of swathTiles(origin, facing, width)) add(t);
+  return tiles;
+}
+
 export function toolCanCutCell(lawn, tool, x, y) {
   if (!isCuttable(lawn, x, y)) return false;
   const edge = isEdgeCell(lawn, x, y);

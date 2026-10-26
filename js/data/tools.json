@@ -9,7 +9,7 @@
     "speed": 0.5,
     "energyPerCell": 1.0,
     "baseQuality": 0.7,
-    "cutSeconds": 2,
+    "cutSeconds": 0.45,
     "targetHeight": 3,
     "kind": "hand",
     "deckHeight": null,

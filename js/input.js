@@ -81,6 +81,33 @@ export function bindInput() {
   });
 }
 
+function overlayBlocksPointer() {
+  return document.getElementById("overlay")?.classList.contains("active");
+}
+
+/** Canvas click / trackpad / touch all hold the same "use" action as Space. */
+export function bindPointer(canvas) {
+  if (!canvas || canvas.dataset.pointerBound) return;
+  canvas.dataset.pointerBound = "1";
+  const start = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (overlayBlocksPointer()) return;
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {
+      /* older Chromebooks */
+    }
+    holdVirtual("use", true);
+    e.preventDefault();
+  };
+  const stop = () => holdVirtual("use", false);
+  canvas.addEventListener("pointerdown", start);
+  canvas.addEventListener("pointerup", stop);
+  canvas.addEventListener("pointercancel", stop);
+  canvas.addEventListener("lostpointercapture", stop);
+  canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+}
+
 export function beginFrame() {
   /* pressed/released live until endFrame */
 }

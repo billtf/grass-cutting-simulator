@@ -1,7 +1,7 @@
 import { createRng, randomSeed } from "./rng.js";
 import { SceneManager } from "./scene.js";
 import { createClock } from "./clock.js";
-import { createLawn, applyLayout, markAllDirty } from "./sim/lawn.js";
+import { createLawn, applyLayout, markAllDirty, ensureTallEnoughLawn } from "./sim/lawn.js";
 import { createPlayer } from "./entities/player.js";
 import { createCamera, resizeCamera } from "./render/camera.js";
 import { createLawnAtlas, rebuildAtlas } from "./render/lawn.js";
@@ -20,8 +20,9 @@ import {
   hydrateLawn,
 } from "./save.js";
 import { createDebug } from "./debug.js";
-import { shouldShowTouch, mountTouch } from "./ui/touch.js";
-import { holdVirtual, touchAxis } from "./input.js";
+import { mountTouch } from "./ui/touch.js";
+import { bindPointer, holdVirtual, touchAxis } from "./input.js";
+import { createFx } from "./render/fx.js";
 
 export class Game {
   constructor(config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, upgrades, els) {
@@ -48,6 +49,8 @@ export class Game {
     this.atlas = null;
     this.hud = mountHud(this.hudEl);
     this.debug = createDebug();
+    this.fx = createFx();
+    this.touchEl = null;
     this.state = null;
     this.hidden = false;
     this.lastTime = 0;
@@ -68,9 +71,8 @@ export class Game {
         this.acc = 0;
       }
     });
-    if (shouldShowTouch()) {
-      mountTouch(this.appEl, { axis: touchAxis, hold: holdVirtual });
-    }
+    bindPointer(this.canvas);
+    this.touchEl = mountTouch(this.appEl, { axis: touchAxis, hold: holdVirtual });
     this.showTitle();
     this.running = true;
     this.lastTime = performance.now();
@@ -148,6 +150,9 @@ export class Game {
   }
 
   afterStateReady() {
+    const bump = ensureTallEnoughLawn(this.state.lawn, this.config, !!this.state.game.cutVisBoost);
+    this.state.game.cutVisBoost = 1;
+    if (bump.boosted) this.state.lawn.allDirty = true;
     if (!this.atlas) this.atlas = createLawnAtlas(this.state.lawn, this.config.tileSize);
     else rebuildAtlas(this.atlas, this.state.lawn);
     markAllDirty(this.state.lawn);
@@ -182,6 +187,7 @@ export class Game {
         weatherTomorrowActual: tomorrow.actual,
         dayLengthMinutes: rules.dayLengthMinutes,
         zonesOwned: ["front"],
+        cutVisBoost: 1,
       },
       economy: {
         coins: rules.startingCoins,
@@ -191,7 +197,7 @@ export class Game {
         bonusCoins: 0,
       },
       lawn,
-      player: createPlayer(this.config.tileSize, 16, 12),
+      player: createPlayer(this.config.tileSize, 16, 7),
       overlay: "none",
       activeCharacterId: "c1",
       characters: [
@@ -271,6 +277,7 @@ export class Game {
         weatherTomorrowActual: saved.game.weatherTomorrowActual || saved.game.weatherTomorrow || "sunny",
         dayLengthMinutes: saved.game.dayLengthMinutes || rules.dayLengthMinutes,
         zonesOwned: saved.lawn.zonesOwned || ["front"],
+        cutVisBoost: saved.game.cutVisBoost || 0,
       },
       economy: {
         coins: saved.economy.coins ?? rules.startingCoins,

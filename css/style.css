@@ -7,7 +7,7 @@
   --accent: #f9a825;
   --danger: #c62828;
   --shadow: rgba(0, 0, 0, 0.35);
-  --font: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
+  --font: "Noto Sans", Arimo, Roboto, "Segoe UI", Verdana, sans-serif;
 }
 
 * {
@@ -39,6 +39,7 @@ body {
   height: 100%;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  touch-action: none;
 }
 
 #hud,
@@ -46,6 +47,14 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+#hud {
+  z-index: 3;
+}
+
+#overlay {
+  z-index: 6;
 }
 
 #hud.active,
@@ -92,13 +101,15 @@ body {
 }
 
 .hud-chip {
-  background: rgba(20, 42, 20, 0.86);
+  background: #163318;
   color: var(--paper);
-  border: 2px solid #a5d6a7;
-  border-radius: 8px;
+  border: 3px solid #8bc34a;
+  border-radius: 0;
+  box-shadow: inset 0 2px 0 #2e7d32, 2px 2px 0 #0a160a;
   padding: 6px 10px;
-  font-size: 14px;
-  letter-spacing: 0.02em;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  image-rendering: pixelated;
 }
 
 .hud-chip.hidden {
@@ -109,6 +120,7 @@ body {
   background: #fff8e1;
   color: #3e2723;
   border-color: var(--accent);
+  box-shadow: inset 0 2px 0 #ffe082, 2px 2px 0 #5d4037;
 }
 
 .panel {
@@ -129,7 +141,16 @@ body {
   width: 56px;
   height: 56px;
   margin: 0 auto 8px;
-  background: linear-gradient(#81c784, #2e7d32);
+  image-rendering: pixelated;
+  background:
+    linear-gradient(#f9a825, #f9a825) 24px 38px / 8px 10px no-repeat,
+    linear-gradient(#66bb6a, #66bb6a) 10px 22px / 4px 18px no-repeat,
+    linear-gradient(#2e7d32, #2e7d32) 16px 16px / 4px 24px no-repeat,
+    linear-gradient(#43a047, #43a047) 22px 12px / 4px 28px no-repeat,
+    linear-gradient(#1b5e20, #1b5e20) 28px 14px / 4px 26px no-repeat,
+    linear-gradient(#7cb342, #7cb342) 34px 20px / 4px 20px no-repeat,
+    linear-gradient(#8d6e4a, #8d6e4a) 8px 40px / 40px 8px no-repeat,
+    #245427;
   border: 4px solid #1b5e20;
   box-shadow: 4px 4px 0 #145214;
 }
@@ -408,6 +429,30 @@ h1 {
   min-height: 44px;
   font: inherit;
   font-weight: 700;
+  border: 3px solid #f57f17;
+  background: #f9a825;
+  color: #3e2723;
+  box-shadow: 2px 2px 0 #5d4037;
+}
+
+.touch-btns button[data-k="use"] {
+  flex: 1 0 100%;
+  min-height: 52px;
+  font-size: 18px;
+}
+
+.touch-layer.click-only .stick {
+  display: none;
+}
+
+.touch-layer.click-only .touch-btns {
+  width: auto;
+  max-width: 200px;
+}
+
+#overlay.active ~ .touch-layer {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 body.reduced-motion * {

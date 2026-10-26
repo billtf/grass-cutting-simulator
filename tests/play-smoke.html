@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Grass Friend cut smoke</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <style>
+      #report {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        z-index: 20;
+        background: #fff8e1;
+        color: #1b2a1b;
+        padding: 10px 12px;
+        border: 3px solid #33691e;
+        max-width: 420px;
+        font: 14px/1.35 "Trebuchet MS", sans-serif;
+      }
+      #app {
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game" width="320" height="240"></canvas>
+      <div id="hud"></div>
+      <div id="overlay"></div>
+    </div>
+    <pre id="report">Running cut smoke…</pre>
+    <script type="module">
+      import { bindInput, beginFrame, endFrame, holdVirtual } from "../js/input.js";
+      import { Game } from "../js/game.js";
+      import { averageHeight, indexOf } from "../js/sim/lawn.js";
+      import { tileAt } from "../js/entities/player.js";
+
+      async function loadJson(url) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to load ${url}`);
+        return res.json();
+      }
+
+      const report = document.getElementById("report");
+      const dataUrl = (name) => new URL(`../js/data/${name}`, import.meta.url);
+      const [
+        config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, upgrades,
+      ] = await Promise.all([
+        loadJson(dataUrl("config.json")),
+        loadJson(dataUrl("tools.json")),
+        loadJson(dataUrl("difficulty.json")),
+        loadJson(dataUrl("shop.json")),
+        loadJson(dataUrl("tips.json")),
+        loadJson(dataUrl("care.json")),
+        loadJson(dataUrl("weather.json")),
+        loadJson(dataUrl("traits.json")),
+        loadJson(dataUrl("neighbors.json")),
+        loadJson(dataUrl("jobs.json")),
+        loadJson(dataUrl("upgrades.json")),
+      ]);
+
+      bindInput();
+      const game = new Game(config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, upgrades, {
+        canvas: document.getElementById("game"),
+        hud: document.getElementById("hud"),
+        overlay: document.getElementById("overlay"),
+        app: document.getElementById("app"),
+      });
+      game.start();
+      game.startNewGame("normal");
+
+      const lawn = game.state.lawn;
+      const origin = tileAt(game.state.player, config.tileSize);
+      const standing = indexOf(lawn, origin.x, origin.y);
+      const beforeCell = lawn.heightArr[standing];
+      const beforeAvg = averageHeight(lawn);
+
+      function tick(dt) {
+        beginFrame();
+        game.scenes.update(dt, game);
+        endFrame();
+        game.scenes.draw(game.ctx, game);
+      }
+
+      holdVirtual("use", true);
+      for (let i = 0; i < 8; i++) tick(1 / 30);
+      holdVirtual("use", false);
+      tick(1 / 30);
+      for (let i = 0; i < 4; i++) tick(1 / 30);
+
+      const afterCell = lawn.heightArr[standing];
+      const afterAvg = averageHeight(lawn);
+      const dropped = afterCell < beforeCell - 0.04;
+      const lines = [
+        dropped ? "PASS click/hold cut lowers standing grass" : "FAIL standing grass did not drop",
+        `standing ${origin.x},${origin.y}: ${beforeCell.toFixed(2)} → ${afterCell.toFixed(2)} in`,
+        `lawn average: ${beforeAvg.toFixed(2)} → ${afterAvg.toFixed(2)} in`,
+        `toast: ${game.hud.toast?.textContent || "(none)"}`,
+        `cut tiles dirty: ${[...lawn.dirty].filter((v) => v).length}`,
+      ];
+      report.textContent = lines.join("\n");
+      document.title = dropped ? "PASS cut smoke" : "FAIL cut smoke";
+      window.__cutSmoke = { dropped, beforeCell, afterCell, beforeAvg, afterAvg };
+    </script>
+  </body>
+</html>

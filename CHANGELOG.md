@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.1 — Cut UX and pixel art
+
+- Click, tap, or hold Space to cut standing + facing grass in about half a second
+- HUD tip when a cut is blocked or the patch is already short; snip particles on a real cut
+- New lawns start taller (4.5–6.2 in); old short saves get a one-time grow so the first cut shows
+- Pixel-art lawn, house, shed, player, tools, and HUD chrome (no CDN, no build step)
+
 ## v1.0.0 — Phase 4 depth and polish
 
 - Lawn size upgrades, top tools through the robot fleet and goats

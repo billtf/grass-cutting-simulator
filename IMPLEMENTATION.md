@@ -67,17 +67,17 @@ The sim modules hold all game state and rules and load their numbers from the da
 
 Goal: walk around a lawn that grows, cut it with scissors, close the tab, come back, and find it where you left it. Tag `v0.1`.
 
-**Status (2026-10-26):** P0.1–P0.12 implemented. Play locally with `python3 -m http.server 8000`. GitHub Pages still needs a human to set **Settings → Pages → Deploy from a branch → `main` → `/`**. Chromebook FPS and school-filter checks wait on that URL.
+**Status (2026-10-26):** P0.1–P0.12 implemented. Play locally with `python3 -m http.server 8000`. GitHub Pages still needs a human to set **Settings → Pages → Deploy from a branch → `main` → `/`**. Chromebook FPS and school-filter checks wait on that URL. Cut UX (2026-10-26): click/tap/Space all cut the standing + facing cells in ~0.45s with snip VFX and a HUD tip if the patch is already short or blocked. New lawns start 4.5–6.2 in so the first cut is visible.
 
 - [x] **P0.1 Repo and Pages setup (1 h).** Steps in Repo setup above; green canvas live on the Chromebook.
 - [x] **P0.2 Boot and game loop (2 h).** `main.js` loads config JSON, runs a fixed 30 Hz sim tick and a requestAnimationFrame render; pauses when the tab is hidden.
 - [x] **P0.3 Scene manager (1 h).** Push and pop scenes (title, lawn, pause) with enter, exit, update, draw hooks.
 - [x] **P0.4 Game clock (1 h).** In game hour counter, 6 minute day, day rollover event, fast forward.
-- [x] **P0.5 Lawn grid (2 h).** `lawn.js` with typed arrays for height, moisture, health, weed, fertilizer, lastCut; 32 x 24 start; random 2.5 to 4 in heights.
+- [x] **P0.5 Lawn grid (2 h).** `lawn.js` with typed arrays for height, moisture, health, weed, fertilizer, lastCut; 32 x 24 start; random 4.5 to 6.2 in heights so the first scissors pass is visible.
 - [x] **P0.6 Growth tick (2 h).** Growth formula from the spec with season and water multipliers stubbed at 1.0; runs each in game hour.
-- [x] **P0.7 Lawn renderer (2 h).** Offscreen canvas of cells colored by height and health; redraw only changed cells; 3x pixel scale.
-- [x] **P0.8 Player movement (1.5 h).** WASD and arrows, collision with lawn edges, simple 16 px sprite square.
-- [x] **P0.9 Scissors cutting (1.5 h).** Hold Space to cut the facing cell to 3 in over 2 s; apply the one third rule check.
+- [x] **P0.7 Lawn renderer (2 h).** Offscreen canvas; dirty cells only; 3x pixel scale. Pixel-art grass blades by height, house, shed, fence, path (P4.10).
+- [x] **P0.8 Player movement (1.5 h).** WASD and arrows, collision with lawn edges, pixel kid sprite with facing and held tool.
+- [x] **P0.9 Scissors cutting (1.5 h).** Click Cut, tap/click the lawn, or hold Space. Cuts the standing cell and facing swath to 3 in in ~0.45 s (tap completes immediately). One third / scalp / already-short / blocked each show a HUD tip; snip particles on a real cut.
 - [x] **P0.10 Basic HUD and points (1 h).** Clock, day, points; +2 per clean cut, penalties for overgrown cells.
 - [x] **P0.11 Height overlay (0.5 h).** H toggles green, yellow, red height map.
 - [x] **P0.12 Save and load (0.5 h).** Autosave at day end and on tab hide; load on boot; base64 typed arrays; `schemaVersion: 1`.
@@ -162,7 +162,7 @@ Goal: players build and restyle their own crew, and earn by mowing for neighbors
 
 Goal: a full year of play with no dead ends, real art, sound, and touch support. Tag `v1.0`.
 
-**Status (2026-10-26):** Most of Phase 4 is in. Remaining: zone features (shade/beds/slope), add-ons, pests/breakdowns, and a real pixel-art pass (still placeholder squares). Camera already follows the player; a dedicated minimap HUD chip is still light.
+**Status (2026-10-26):** Most of Phase 4 is in, including the P4.10 pixel-art pass (procedural grass/house/shed/player, no CDN). Remaining: zone features (shade/beds/slope), add-ons, pests/breakdowns. Camera already follows the player; a dedicated minimap HUD chip is still light.
 
 **Content (14 h)**
 
@@ -181,9 +181,9 @@ Goal: a full year of play with no dead ends, real art, sound, and touch support.
 
 **Polish (12 h)**
 
-- [ ] **P4.10 Pixel art pass (4 h).** Grass at 4 heights, tools, shed, houses, neighbors, weather effects. Placeholder squares remain.
+- [x] **P4.10 Pixel art pass (4 h).** Grass blades at 6 height bands, pixel house/shed/fence/path, kid + held tools, HUD chrome, rain/heat tint. Procedural Canvas 2D / CSS only (no external asset host).
 - [x] **P4.11 Sound (2 h).** Mower loops by tier, snip, water, rain, UI clicks, music toggle.
-- [x] **P4.12 Touch controls (2 h).** Joystick, action and tool buttons shown only on touchscreens.
+- [x] **P4.12 Touch controls (2 h).** Joystick on coarse pointers; Cut / E / Q always visible so Chromebook trackpad clicks work. Canvas pointer also binds Cut.
 - [x] **P4.13 Almanac and guided first day (2 h).** Unlocked tips and tool info; skippable tutorial.
 - [x] **P4.14 Accessibility settings (1 h).** Colorblind palette for overlays, reduced motion, volume.
 - [x] **P4.15 Final balance pass (1 h).** Full year on Normal; check that each lawn upgrade needs the next tool tier.
