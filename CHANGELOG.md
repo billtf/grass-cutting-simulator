@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.0 — Phase 4 depth and polish
+
+- Lawn size upgrades, top tools through the robot fleet and goats
+- Touch joystick on coarse pointers, generated Web Audio beeps
+- Volume, colorblind overlays, reduced motion
+- Robot auto-mow, overnight goats, first-day tip
+
 ## v0.4.0 — Phase 3 characters and neighbor jobs
 
 - Up to 4 characters, traits, needs, skill points, shed mirror

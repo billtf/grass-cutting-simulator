@@ -21,7 +21,7 @@ export function rebuildAtlas(atlas, lawn) {
   lawn.dirty.fill(1);
 }
 
-export function paintDirty(atlas, lawn, overlay) {
+export function paintDirty(atlas, lawn, overlay, colorblind = false) {
   if (atlas.overlay !== overlay) {
     atlas.overlay = overlay;
     lawn.allDirty = true;
@@ -38,7 +38,8 @@ export function paintDirty(atlas, lawn, overlay) {
       lawn.heightArr[i],
       lawn.health[i],
       lawn.moisture[i],
-      overlay
+      overlay,
+      colorblind
     );
     ctx.fillStyle = color;
     ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);

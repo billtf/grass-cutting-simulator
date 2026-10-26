@@ -9,7 +9,7 @@ async function loadJson(url) {
 
 async function boot() {
   const dataUrl = (name) => new URL(`./data/${name}`, import.meta.url);
-  const [config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes] = await Promise.all([
+  const [config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, upgrades] = await Promise.all([
     loadJson(dataUrl("config.json")),
     loadJson(dataUrl("tools.json")),
     loadJson(dataUrl("difficulty.json")),
@@ -20,11 +20,12 @@ async function boot() {
     loadJson(dataUrl("traits.json")),
     loadJson(dataUrl("neighbors.json")),
     loadJson(dataUrl("jobs.json")),
+    loadJson(dataUrl("upgrades.json")),
   ]);
 
   bindInput();
 
-  const game = new Game(config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, {
+  const game = new Game(config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, upgrades, {
     canvas: document.getElementById("game"),
     hud: document.getElementById("hud"),
     overlay: document.getElementById("overlay"),

@@ -1,0 +1,8 @@
+[
+  { "id": "front", "name": "Starter front yard", "width": 32, "height": 24, "cost": 0, "unlockLevel": 1, "feature": "flat" },
+  { "id": "side", "name": "Side yard", "width": 40, "height": 24, "cost": 1000, "unlockLevel": 5, "feature": "narrow" },
+  { "id": "back", "name": "Backyard", "width": 48, "height": 36, "cost": 5000, "unlockLevel": 10, "feature": "shade" },
+  { "id": "beds", "name": "Garden beds", "width": 48, "height": 36, "cost": 3000, "unlockLevel": 13, "feature": "beds" },
+  { "id": "slope", "name": "Back slope", "width": 56, "height": 42, "cost": 15000, "unlockLevel": 18, "feature": "slope" },
+  { "id": "lot", "name": "Big lot", "width": 64, "height": 48, "cost": 40000, "unlockLevel": 24, "feature": "goats" }
+]

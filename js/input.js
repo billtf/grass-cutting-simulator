@@ -102,14 +102,28 @@ export function released(name) {
   return RELEASED.has(name);
 }
 
+export const touchAxis = { x: 0, y: 0 };
+
+export function holdVirtual(name, on) {
+  if (on) {
+    if (!DOWN.has(name)) PRESSED.add(name);
+    DOWN.add(name);
+  } else {
+    DOWN.delete(name);
+    RELEASED.add(name);
+  }
+}
+
 export function moveVector() {
-  let x = 0;
-  let y = 0;
+  let x = touchAxis.x;
+  let y = touchAxis.y;
   if (down("left")) x -= 1;
   if (down("right")) x += 1;
   if (down("up")) y -= 1;
   if (down("down")) y += 1;
-  if (x !== 0 && y !== 0) {
+  x = Math.max(-1, Math.min(1, x));
+  y = Math.max(-1, Math.min(1, y));
+  if (x !== 0 && y !== 0 && Math.abs(touchAxis.x) < 0.01 && Math.abs(touchAxis.y) < 0.01) {
     const inv = 1 / Math.sqrt(2);
     x *= inv;
     y *= inv;
@@ -118,5 +132,12 @@ export function moveVector() {
 }
 
 export function anyMoveDown() {
-  return down("left") || down("right") || down("up") || down("down");
+  return (
+    down("left") ||
+    down("right") ||
+    down("up") ||
+    down("down") ||
+    Math.abs(touchAxis.x) > 0.2 ||
+    Math.abs(touchAxis.y) > 0.2
+  );
 }

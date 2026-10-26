@@ -1,6 +1,6 @@
 import * as input from "../../input.js";
 import { advanceClock, formatClock } from "../../clock.js";
-import { tickGrowth, countOvergrown, isShed, isCuttable, averageHeight, grassCellCount } from "../../sim/lawn.js";
+import { tickGrowth, countOvergrown, isShed, isCuttable, averageHeight, grassCellCount, cutCell, KIND, SEASON_MULT } from "../../sim/lawn.js";
 import { pointsForCut, applyPoints, overgrownPenalty } from "../../sim/scoring.js";
 import { movePlayer, tileAt, facingTile } from "../../entities/player.js";
 import { findTool, findAnyTool, cycleTool, selectSlot, cutSecondsFor, targetHeightFor, nudgeDeck } from "../../entities/tools.js";
@@ -11,6 +11,7 @@ import { swathTiles, toolCanCutCell, toolBlockedReason, performSwath } from "../
 import { activeCharacter, addXp } from "../../sim/xp.js";
 import { createShedScene } from "./shed.js";
 import { endJob } from "../../sim/away.js";
+import { beep } from "../../audio.js";
 import { traitValue, hasTraitFlag } from "../../sim/traits.js";
 import { createSummaryScene, pickTip } from "./summary.js";
 import {
@@ -29,7 +30,6 @@ import {
   ensureExtras,
 } from "../../sim/care.js";
 import { weatherStats, weatherForDay, labelWeather } from "../../sim/weather.js";
-import { SEASON_MULT } from "../../sim/lawn.js";
 import { inspectLawn, applyInspection } from "../../sim/hoa.js";
 import { unlockTip } from "../../sim/tips.js";
 import { seasonForDay } from "../../clock.js";
@@ -41,6 +41,10 @@ export function createLawnScene(game) {
     enter() {
       game.hudEl.classList.add("active");
       updateHud(game.hud, game.state, game.allTools, game.weatherTable);
+      if (game.state.tutorialStep === 0) {
+        showToast(game.hud, "Welcome! WASD to walk. Hold Space to cut. E at the shed. Press H for maps. Skip: just play.", 6000);
+        game.state.tutorialStep = 1;
+      }
     },
     exit() {
       game.hudEl.classList.remove("active");
@@ -157,13 +161,18 @@ export function createLawnScene(game) {
     },
     draw(ctx, g) {
       const state = g.state;
-      paintDirty(g.atlas, state.lawn, state.overlay);
+      paintDirty(g.atlas, state.lawn, state.overlay, state.settings.colorblind);
       ctx.imageSmoothingEnabled = false;
       ctx.fillStyle = "#0d2612";
       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       drawAtlas(ctx, g.atlas, g.camera);
       drawCutProgress(ctx, state.player, g.camera, g.config.tileSize);
       drawPlayer(ctx, state.player, g.camera, g.config.tileSize, activeCharacter(state));
+      const mw = 48;
+      const mh = 36;
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.fillRect(ctx.canvas.width - mw - 4, 4, mw + 2, mh + 2);
+      ctx.drawImage(g.atlas.canvas, ctx.canvas.width - mw - 3, 5, mw, mh);
     },
   };
 }
@@ -261,8 +270,9 @@ function handleCut(game, dt) {
   } else if (scalped) {
     const tip = unlockTip(state, "scalp");
     showToast(game.hud, tip || "Scalped: that patch is too short. Aim for 3 inches.");
-  } else if (gained > 0) {
+  }   else if (gained > 0) {
     showToast(game.hud, `+${gained} from the cut`, 800);
+    beep("snip", state.settings.volume ?? 0.7);
   }
 }
 
@@ -311,6 +321,7 @@ function onHour(game, hour) {
   if (hour === 12) {
     showToast(game.hud, `Noon · ${formatClock(state.clock)}`);
   }
+  runRobotsAndGoats(game, hour);
   if (hour === 6 && state.care?.timed) {
     const hose = game.careTools.find((t) => t.auto);
     if (hose) {
@@ -348,6 +359,14 @@ function onDayEnd(game) {
   const startE = traitValue(character, game.traits, "startEnergy", {}, 0);
   character.needs.energy = startE || 100;
   character.needs.hydration = 100;
+  for (const mate of state.characters) {
+    if (mate.id === character.id) continue;
+    if (mate.assignment === "water") {
+      for (let i = 0; i < state.lawn.moisture.length; i += 7) {
+        if (state.lawn.kind[i] === 0) state.lawn.moisture[i] = Math.min(100, state.lawn.moisture[i] + 12);
+      }
+    }
+  }
   character.stats.lawnsMowed += 1;
 
   const season = seasonForDay(state.clock.day, game.weatherTable.daysPerSeason);
@@ -517,6 +536,39 @@ export function resetDayLog(state) {
     healthy: 0,
     coinsStart: state.economy.coins,
   };
+}
+
+function runRobotsAndGoats(game, hour) {
+  const state = game.state;
+  const robot = state.inventory.tools.find((t) => t.id === "robot_fleet");
+  const goat = state.inventory.tools.find((t) => t.id === "goat_crew");
+  const target = state.inventory.deckHeight || 3;
+  if (robot) {
+    const def = game.tools.find((t) => t.id === "robot_fleet");
+    let n = 0;
+    for (let i = 0; i < state.lawn.heightArr.length && n < 12; i++) {
+      if (state.lawn.kind[i] !== KIND.grass) continue;
+      if (state.lawn.heightArr[i] <= target + 0.2) continue;
+      const x = i % state.lawn.width;
+      const y = (i - x) / state.lawn.width;
+      cutCell(state.lawn, x, y, target, def.baseQuality, hour, {
+        minHeight: game.config.lawn.minHeight,
+        scalpHeight: game.config.lawn.scalpHeight,
+        oneThirdPenalty: 0,
+        oneThirdWarningOnly: true,
+      });
+      n += 1;
+    }
+  }
+  if (goat && hour === 0) {
+    for (let i = 0; i < state.lawn.weed.length; i++) {
+      if (state.lawn.weed[i] > 0) state.lawn.weed[i] -= 1;
+      if (state.lawn.kind[i] === KIND.grass && state.lawn.heightArr[i] > 3.2) {
+        state.lawn.heightArr[i] = Math.max(2.5, state.lawn.heightArr[i] - 0.4);
+        state.lawn.dirty[i] = 1;
+      }
+    }
+  }
 }
 
 export function emptyDayLog() {

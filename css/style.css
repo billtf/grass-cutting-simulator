@@ -363,6 +363,57 @@ h1 {
   gap: 8px;
 }
 
+.touch-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.stick {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: 3px solid #c8e6c9;
+  pointer-events: auto;
+}
+
+.stick i {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f9a825;
+  left: 37px;
+  top: 37px;
+}
+
+.touch-btns {
+  position: absolute;
+  right: 12px;
+  bottom: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  width: 160px;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.touch-btns button {
+  flex: 1 0 44%;
+  min-height: 44px;
+  font: inherit;
+  font-weight: 700;
+}
+
+body.reduced-motion * {
+  transition: none !important;
+}
+
 noscript p {
   padding: 24px;
 }

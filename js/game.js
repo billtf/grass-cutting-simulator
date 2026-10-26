@@ -20,9 +20,11 @@ import {
   hydrateLawn,
 } from "./save.js";
 import { createDebug } from "./debug.js";
+import { shouldShowTouch, mountTouch } from "./ui/touch.js";
+import { holdVirtual, touchAxis } from "./input.js";
 
 export class Game {
-  constructor(config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, els) {
+  constructor(config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, upgrades, els) {
     this.config = config;
     this.tools = tools;
     this.difficultyTable = difficulty;
@@ -33,6 +35,7 @@ export class Game {
     this.traits = traits;
     this.neighbors = neighbors;
     this.jobTypes = jobTypes;
+    this.upgrades = upgrades;
     this.careTools = care.tools || [];
     this.allTools = [...tools, ...(care.tools || [])];
     this.canvas = els.canvas;
@@ -65,6 +68,9 @@ export class Game {
         this.acc = 0;
       }
     });
+    if (shouldShowTouch()) {
+      mountTouch(this.appEl, { axis: touchAxis, hold: holdVirtual });
+    }
     this.showTitle();
     this.running = true;
     this.lastTime = performance.now();
@@ -226,6 +232,7 @@ export class Game {
       almanac: [],
       care: { sprinklers: [], timed: false },
       jobs: emptyJobs(),
+      tutorialStep: 0,
       settings: { volume: 0.7, colorblind: false, reducedMotion: false },
       dayLog: {
         cuts: 0,

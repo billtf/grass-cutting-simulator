@@ -31,6 +31,7 @@ export function createProfilesScene(game) {
           <div class="fine">Lv ${c.level} · ${c.traits.join(", ") || "no traits"} · cuts ${c.stats.cellsCut}</div></div>
           <div class="btn-row">
             <button class="btn primary" data-act="active-${c.id}">Use</button>
+            <button class="btn" data-act="task-${c.id}">${c.assignment || "Assign water"}</button>
             <button class="btn" data-act="edit-${c.id}">Edit</button>
             <button class="btn" data-act="dupe-${c.id}">Copy</button>
             <button class="btn danger" data-act="del-${c.id}">Delete</button>
@@ -60,6 +61,14 @@ export function createProfilesScene(game) {
         state.activeCharacterId = act.slice(7);
         game.save();
         render();
+      }
+      if (act.startsWith("task-")) {
+        const c = state.characters.find((x) => x.id === act.slice(5));
+        if (c) {
+          c.assignment = c.assignment === "water" ? null : "water";
+          game.save();
+          render();
+        }
       }
       if (act.startsWith("edit-")) {
         const c = state.characters.find((x) => x.id === act.slice(5));
