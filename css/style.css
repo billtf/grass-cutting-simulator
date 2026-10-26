@@ -7,7 +7,7 @@
   --accent: #f9a825;
   --danger: #c62828;
   --shadow: rgba(0, 0, 0, 0.35);
-  --font: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
+  --font: "Noto Sans", Arimo, Roboto, "Segoe UI", Verdana, sans-serif;
 }
 
 * {

@@ -72,9 +72,11 @@ function drawGrass(ctx, lawn, x, y, ts, i) {
   const health = lawn.health[i];
   const px = x * ts;
   const py = y * ts;
-  const soil = health <= 0 ? "#6d4c41" : h < 1.8 ? "#c4a574" : h < 2.6 ? "#8d9a4a" : "#3d6b2a";
+  const soil = health <= 0 ? "#6d4c41" : h < 1.8 ? "#d7c08a" : h < 2.8 ? "#b8a45a" : h <= 3.5 ? "#6d8b3c" : "#2f4f1c";
   ctx.fillStyle = soil;
   ctx.fillRect(px, py, ts, ts);
+  ctx.fillStyle = h <= 3.5 ? "#c9b36a" : "#3d5a22";
+  ctx.fillRect(px + ((x * 3 + y) % ts), py + ts - 2, 2, 2);
 
   const seed = hash2(x, y);
   let bladeH;
@@ -83,19 +85,19 @@ function drawGrass(ctx, lawn, x, y, ts, i) {
   let colorB;
   if (h < 1.5) {
     bladeH = 2;
-    count = 4;
-    colorA = "#c5d67a";
-    colorB = "#a5b45a";
+    count = 3;
+    colorA = "#dce775";
+    colorB = "#c5d67a";
   } else if (h < 2.5) {
     bladeH = 4;
-    count = 6;
-    colorA = "#9ccc65";
-    colorB = "#7cb342";
+    count = 5;
+    colorA = "#c6e05a";
+    colorB = "#9ccc65";
   } else if (h <= 3.5) {
-    bladeH = 7;
-    count = 8;
-    colorA = "#66bb6a";
-    colorB = "#43a047";
+    bladeH = 6;
+    count = 7;
+    colorA = "#8bc34a";
+    colorB = "#7cb342";
   } else if (h <= 4.5) {
     bladeH = 9;
     count = 10;
@@ -103,12 +105,12 @@ function drawGrass(ctx, lawn, x, y, ts, i) {
     colorB = "#2e7d32";
   } else if (h <= 6) {
     bladeH = 12;
-    count = 12;
+    count = 13;
     colorA = "#2e7d32";
-    colorB = "#1b5e20";
+    colorB = "#145214";
   } else {
     bladeH = 14;
-    count = 14;
+    count = 15;
     colorA = "#1b5e20";
     colorB = "#0d3b12";
   }

@@ -302,7 +302,7 @@ for (let i = 0; i < restored.heightArr.length; i++) {
   if (Math.abs(restored.heightArr[i] - springLawn.heightArr[i]) > 1e-5) match = false;
 }
 assert("Save round trip keeps lawn heights", match, `cells=${restored.heightArr.length}`);
-assert("Save carries schemaVersion 1", again.schemaVersion === 1, String(again.schemaVersion));
+assert("v1 save migrates to schemaVersion 2", again.schemaVersion === 2, String(again.schemaVersion));
 
 summary.textContent = `${passed} passed, ${failed} failed, ${skipped} skipped`;
 document.title = failed ? `FAIL ${failed}` : `PASS ${passed}`;

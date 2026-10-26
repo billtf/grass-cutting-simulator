@@ -197,7 +197,7 @@ export class Game {
         bonusCoins: 0,
       },
       lawn,
-      player: createPlayer(this.config.tileSize, 16, 12),
+      player: createPlayer(this.config.tileSize, 16, 7),
       overlay: "none",
       activeCharacterId: "c1",
       characters: [
