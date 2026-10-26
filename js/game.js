@@ -194,6 +194,7 @@ export class Game {
           catchphrase: "Fresh cut!",
           level: 1,
           xp: 0,
+          skillPoints: 0,
           skills: { stamina: 0, precision: 0, speed: 0, botany: 0 },
           needs: { energy: 100, hydration: 100, mood: 100 },
           stats: { cellsCut: 0, bestStreak: 0, lawnsMowed: 0 },
