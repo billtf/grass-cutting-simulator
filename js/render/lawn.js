@@ -1,6 +1,7 @@
 /** Offscreen lawn atlas. Only dirty cells are redrawn. Never writes game state. */
 
 import { cellFill } from "./colors.js";
+import { isEdgeCell } from "../sim/cutting.js";
 
 export function createLawnAtlas(lawn, tileSize) {
   const canvas = document.createElement("canvas");
@@ -47,6 +48,10 @@ export function paintDirty(atlas, lawn, overlay) {
         for (let s = 2; s < tileSize; s += 4) {
           ctx.fillRect(x * tileSize + s, y * tileSize + 2, 1, tileSize - 4);
         }
+      }
+      if (isEdgeCell(lawn, x, y)) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, 2);
       }
     }
     if (lawn.kind[i] === 2) {

@@ -7,15 +7,21 @@ export function createSettingsScene(game, { fromTitle }) {
     transparent: !fromTitle,
     blocksUpdate: true,
     enter() {
+      const current = game.state?.difficulty || "normal";
       const card = el(`
         <div class="panel">
           <h2>Settings</h2>
-          <p>Difficulty and extras unlock in later phases. Your save stays in this browser.</p>
-          <label class="field">Day length
-            <span>${game.state?.game.dayLengthMinutes ?? 6} minutes (Normal)</span>
+          <p>Change difficulty anytime. Your lawn and coins stay.</p>
+          <label class="field">Difficulty
+            <span>Now: ${current}. Day length follows the choice.</span>
           </label>
+          <div class="btn-row">
+            <button class="btn ${current === "easy" ? "primary" : ""}" data-act="easy">Easy</button>
+            <button class="btn ${current === "normal" ? "primary" : ""}" data-act="normal">Normal</button>
+            <button class="btn ${current === "hard" ? "primary" : ""}" data-act="hard">Hard</button>
+          </div>
           <label class="field">What's new
-            <span>v${game.config.version} — playable lawn, scissors, save/load.</span>
+            <span>v${game.config.version} — tools through the gas mower, shed shop, workbench, day summary.</span>
           </label>
           <div class="btn-col">
             <button class="btn danger" data-act="wipe">Delete save</button>
@@ -25,8 +31,11 @@ export function createSettingsScene(game, { fromTitle }) {
       `);
       card.addEventListener("click", (e) => {
         const act = e.target.closest("[data-act]")?.dataset.act;
-        if (act === "back") {
+        if (act === "back") game.scenes.pop();
+        if (act === "easy" || act === "normal" || act === "hard") {
+          if (game.state) game.setDifficulty(act);
           game.scenes.pop();
+          game.openSettings();
         }
         if (act === "wipe") {
           if (confirm("Delete the local save? This cannot be undone.")) {

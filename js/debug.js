@@ -38,7 +38,8 @@ export function createDebug() {
           <div>Day <span data-day>1</span> hour <span data-hour>0</span></div>
           <button data-act="hour">Skip 1 hour</button>
           <button data-act="day">Skip to next day</button>
-          <button data-act="coins">+100 coins</button>
+          <button data-act="coins">+500 coins</button>
+          <button data-act="xp">+1 level</button>
           <button data-act="grow">Grow all cells</button>
         </div>
       `);
@@ -60,7 +61,14 @@ export function createDebug() {
           game.save();
         }
         if (act === "coins") {
-          game.state.economy.coins += 100;
+          game.state.economy.coins += 500;
+        }
+        if (act === "xp") {
+          const c = game.state.characters[0];
+          if (c) {
+            c.level += 1;
+            c.skillPoints = (c.skillPoints || 0) + 1;
+          }
         }
         if (act === "grow") {
           tickGrowth(game.state.lawn, game.config, {

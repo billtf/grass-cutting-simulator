@@ -1,7 +1,30 @@
-/** Tool definitions and cut quality. Numbers come from tools.json. */
+/** Tool lookup and player-facing helpers. Numbers come from tools.json. */
 
 export function findTool(tools, id) {
   return tools.find((t) => t.id === id) || tools[0];
+}
+
+export function ownedIds(inventory) {
+  return inventory.tools.map((t) => t.id);
+}
+
+export function cycleTool(inventory, tools, dir) {
+  const owned = ownedIds(inventory);
+  if (!owned.length) return inventory.equippedTool;
+  const order = tools.map((t) => t.id).filter((id) => owned.includes(id));
+  const i = Math.max(0, order.indexOf(inventory.equippedTool));
+  const next = order[(i + dir + order.length) % order.length];
+  inventory.equippedTool = next;
+  return next;
+}
+
+export function selectSlot(inventory, tools, slotIndex) {
+  const owned = ownedIds(inventory);
+  const order = tools.map((t) => t.id).filter((id) => owned.includes(id));
+  const id = order[slotIndex];
+  if (!id) return inventory.equippedTool;
+  inventory.equippedTool = id;
+  return id;
 }
 
 export function effectiveQuality(tool, sharpness) {
@@ -15,8 +38,17 @@ export function cutSecondsFor(tool, config) {
   return config.cut.scissorsSeconds;
 }
 
-export function targetHeightFor(tool, config) {
+export function targetHeightFor(tool, inventory, config) {
+  if (tool.deckHeight) return inventory.deckHeight ?? tool.deckHeight.current ?? 3;
   if (tool.targetHeight != null) return tool.targetHeight;
-  if (tool.deckHeight && tool.deckHeight.current != null) return tool.deckHeight.current;
   return config.cut.scissorsTarget;
+}
+
+export function nudgeDeck(inventory, tool, dir) {
+  if (!tool.deckHeight) return inventory.deckHeight;
+  const { min, max, step } = tool.deckHeight;
+  const cur = inventory.deckHeight ?? tool.deckHeight.current ?? 3;
+  const next = Math.max(min, Math.min(max, +(cur + dir * step).toFixed(2)));
+  inventory.deckHeight = next;
+  return next;
 }

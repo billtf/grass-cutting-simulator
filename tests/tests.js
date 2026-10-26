@@ -11,6 +11,9 @@ import { pointsForCut, applyPoints } from "../js/sim/scoring.js";
 import { serializeState, migrate, hydrateLawn } from "../js/save.js";
 import { applyLayout } from "../js/sim/lawn.js";
 import { effectiveQuality } from "../js/entities/tools.js";
+import { addXp, xpToNext } from "../js/sim/xp.js";
+import { canBuyTool, buyTool, makeOwnedTool } from "../js/sim/shop.js";
+import { isEdgeCell, toolCanCutCell, toolBlockedReason, swathTiles } from "../js/sim/cutting.js";
 
 const results = document.getElementById("results");
 const summary = document.getElementById("summary");
@@ -154,6 +157,39 @@ assert("Coins: 1 per 10 points, starting coins kept", economy.points === 12 && e
 
 const q = effectiveQuality({ baseQuality: 0.7 }, 100);
 assert("Scissors quality at full sharpness is 0.70", Math.abs(q - 0.7) < 1e-9, String(q));
+
+const hero = { level: 1, xp: 0, skillPoints: 0 };
+const gained = addXp(hero, xpToNext(1));
+assert("XP: first level-up at 40 points", gained === 1 && hero.level === 2, `level=${hero.level} xp=${hero.xp}`);
+
+const shopState = {
+  economy: { coins: 250 },
+  inventory: { tools: [makeOwnedTool({ id: "scissors" })] },
+};
+const knife = { id: "kitchen_knife", unlockLevel: 2, cost: 150 };
+assert("Shop locks knife at level 1", !canBuyTool(shopState, knife, { level: 1 }).ok, canBuyTool(shopState, knife, { level: 1 }).reason);
+const bought = buyTool(shopState, knife, { level: 2 });
+assert("Shop sells knife at level 2", bought.ok && shopState.economy.coins === 100 && shopState.inventory.tools.length === 2, JSON.stringify(shopState.economy));
+
+const edgeLawn = createLawn(8, 8, createRng(3), config);
+assert("Fence-adjacent grass is an edge", isEdgeCell(edgeLawn, 1, 4), "col 1 should be edge");
+assert("Interior grass is not an edge", !isEdgeCell(edgeLawn, 4, 5), "center should be open");
+const mower = { skipsEdges: true, edgesOnly: false };
+const trimmer = { skipsEdges: false, edgesOnly: true };
+assert("Mower skips edges", !toolCanCutCell(edgeLawn, mower, 1, 4), "mower on edge");
+assert("Trimmer cuts edges only", toolCanCutCell(edgeLawn, trimmer, 1, 4) && !toolCanCutCell(edgeLawn, trimmer, 4, 5), "trimmer rules");
+
+const reel = { maxGrassHeight: 5, needsFuel: false };
+const tallTiles = [{ x: 4, y: 5 }];
+edgeLawn.heightArr[5 * 8 + 4] = 6;
+assert(
+  "Reel mower stalls over 5 in",
+  !!toolBlockedReason(reel, {}, edgeLawn, tallTiles),
+  toolBlockedReason(reel, {}, edgeLawn, tallTiles)
+);
+
+const swath = swathTiles({ x: 4, y: 5 }, "up", 3);
+assert("Width-3 swath is 3 tiles", swath.length === 3 && swath.every((t) => t.y === 4), JSON.stringify(swath));
 
 skip("Watering time", "Phase 2 — not implemented yet");
 skip("Pay formula", "Phase 3 — not implemented yet");

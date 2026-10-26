@@ -1,0 +1,7 @@
+{
+  "sharpenCost": 20,
+  "fuelCanCost": 40,
+  "fuelCanAmount": 100,
+  "oilCost": 35,
+  "lineCost": 15
+}

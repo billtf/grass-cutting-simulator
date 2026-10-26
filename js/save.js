@@ -80,6 +80,7 @@ export function serializeState(state) {
     inventory: state.inventory,
     settings: state.settings,
     overlay: state.overlay,
+    dayLog: state.dayLog || null,
   };
 }
 

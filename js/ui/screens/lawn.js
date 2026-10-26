@@ -1,12 +1,16 @@
 import * as input from "../../input.js";
 import { advanceClock, formatClock } from "../../clock.js";
-import { tickGrowth, cutCell, countOvergrown, isShed, isCuttable } from "../../sim/lawn.js";
+import { tickGrowth, countOvergrown, isShed, isCuttable, averageHeight, grassCellCount } from "../../sim/lawn.js";
 import { pointsForCut, applyPoints, overgrownPenalty } from "../../sim/scoring.js";
 import { movePlayer, tileAt, facingTile } from "../../entities/player.js";
-import { findTool, effectiveQuality, cutSecondsFor, targetHeightFor } from "../../entities/tools.js";
+import { findTool, cycleTool, selectSlot, cutSecondsFor, targetHeightFor, nudgeDeck } from "../../entities/tools.js";
 import { follow } from "../../render/camera.js";
 import { paintDirty, drawAtlas, drawPlayer, drawCutProgress } from "../../render/lawn.js";
 import { updateHud, showToast } from "../hud.js";
+import { swathTiles, toolCanCutCell, toolBlockedReason, performSwath } from "../../sim/cutting.js";
+import { activeCharacter, addXp } from "../../sim/xp.js";
+import { createShedScene } from "./shed.js";
+import { createSummaryScene, pickTip } from "./summary.js";
 
 export function createLawnScene(game) {
   return {
@@ -14,7 +18,7 @@ export function createLawnScene(game) {
     blocksUpdate: true,
     enter() {
       game.hudEl.classList.add("active");
-      updateHud(game.hud, game.state);
+      updateHud(game.hud, game.state, game.tools);
     },
     exit() {
       game.hudEl.classList.remove("active");
@@ -35,18 +39,43 @@ export function createLawnScene(game) {
         );
       }
       if (input.pressed("debug")) g.toggleDebug();
+      if (input.pressed("switchTool")) {
+        const id = cycleTool(state.inventory, g.tools, 1);
+        showToast(g.hud, findTool(g.tools, id).name, 900);
+      }
+      for (let n = 1; n <= 9; n++) {
+        if (input.pressed(`slot${n}`)) {
+          const id = selectSlot(state.inventory, g.tools, n - 1);
+          showToast(g.hud, findTool(g.tools, id).name, 900);
+        }
+      }
+      const equipped = findTool(g.tools, state.inventory.equippedTool);
+      if (input.pressed("deckDown")) {
+        const h = nudgeDeck(state.inventory, equipped, -1);
+        if (equipped.deckHeight) showToast(g.hud, `Deck ${h} inches`, 900);
+      }
+      if (input.pressed("deckUp")) {
+        const h = nudgeDeck(state.inventory, equipped, 1);
+        if (equipped.deckHeight) showToast(g.hud, `Deck ${h} inches`, 900);
+      }
 
       const moving = input.anyMoveDown();
       const move = input.moveVector();
+      const character = activeCharacter(state);
+      const tired = (character.needs.energy || 100) < 20;
+      const speed = g.config.player.speed * (tired ? 0.5 : 1);
       const moved = movePlayer(
         state.player,
         state.lawn,
         g.config.tileSize,
-        g.config.player.speed,
+        speed,
         g.config.player.radius,
         move,
         dt
       );
+      if (moved && character.needs) {
+        character.needs.energy = Math.max(0, character.needs.energy - dt * 0.4);
+      }
 
       const idle = !moved && !input.down("use");
       if (input.pressed("fastForward") && idle) {
@@ -59,8 +88,9 @@ export function createLawnScene(game) {
       handleCut(g, dt);
 
       const nearby = facingTile(state.player, g.config.tileSize);
-      if (input.pressed("interact") && isShed(state.lawn, nearby.x, nearby.y)) {
-        showToast(g.hud, "The shed shop opens in the next update.");
+      const here = tileAt(state.player, g.config.tileSize);
+      if (input.pressed("interact") && (isShed(state.lawn, nearby.x, nearby.y) || nearShed(state, g.config.tileSize))) {
+        g.scenes.push(createShedScene(g));
       }
 
       const stepped = advanceClock(state.clock, dt, state.game.dayLengthMinutes, rate);
@@ -72,8 +102,10 @@ export function createLawnScene(game) {
       }
 
       follow(g.camera, state.player, state.lawn, g.config.tileSize);
-      updateHud(g.hud, state);
+      updateHud(g.hud, state, g.tools);
       if (g.debug.open) g.debug.tick(g, dt);
+      void here;
+      void moving;
     },
     draw(ctx, g) {
       const state = g.state;
@@ -88,35 +120,55 @@ export function createLawnScene(game) {
   };
 }
 
+function nearShed(state, tileSize) {
+  const t = tileAt(state.player, tileSize);
+  for (let y = t.y - 1; y <= t.y + 1; y++) {
+    for (let x = t.x - 1; x <= t.x + 1; x++) {
+      if (isShed(state.lawn, x, y)) return true;
+    }
+  }
+  return false;
+}
+
 function handleCut(game, dt) {
   const state = game.state;
   const tool = findTool(game.tools, state.inventory.equippedTool);
-  const owned = state.inventory.tools.find((t) => t.id === tool.id) || { sharpness: 100 };
-  const tile = facingOrStandingCutTile(state, game.config.tileSize);
+  const owned = state.inventory.tools.find((t) => t.id === tool.id);
+  if (!owned) return;
+  const origin = tileAt(state.player, game.config.tileSize);
+  const tiles = swathTiles(origin, state.player.facing, tool.width || 1);
+  const any = tiles.some((t) => toolCanCutCell(state.lawn, tool, t.x, t.y));
 
-  if (!input.down("use") || !tile || !isCuttable(state.lawn, tile.x, tile.y)) {
+  if (!input.down("use") || !any) {
     state.player.cutProgress = 0;
     state.player.cutTarget = null;
     return;
   }
 
-  const same =
-    state.player.cutTarget &&
-    state.player.cutTarget.x === tile.x &&
-    state.player.cutTarget.y === tile.y;
-  if (!same) {
-    state.player.cutTarget = tile;
+  const key = `${tiles[0].x},${tiles[0].y},${state.player.facing}`;
+  if (!state.player.cutTarget || state.player.cutKey !== key) {
+    state.player.cutTarget = tiles[0];
+    state.player.cutKey = key;
     state.player.cutProgress = 0;
+  }
+
+  const blocked = toolBlockedReason(tool, owned, state.lawn, tiles);
+  if (blocked) {
+    state.player.cutProgress = 0;
+    if (!handleCut._blockToast || handleCut._blockToast !== blocked) {
+      showToast(game.hud, blocked);
+      handleCut._blockToast = blocked;
+    }
+    return;
   }
 
   const need = cutSecondsFor(tool, game.config);
   state.player.cutProgress += dt / need;
   if (state.player.cutProgress < 1) return;
 
-  const quality = effectiveQuality(tool, owned.sharpness);
-  const target = targetHeightFor(tool, game.config);
+  const target = targetHeightFor(tool, state.inventory, game.config);
   const nowHour = (state.clock.day - 1) * 24 + state.clock.hour;
-  const result = cutCell(state.lawn, tile.x, tile.y, target, quality, nowHour, {
+  const { results } = performSwath(state.lawn, tiles, tool, owned, target, nowHour, {
     minHeight: game.config.lawn.minHeight,
     scalpHeight: game.config.lawn.scalpHeight,
     oneThirdPenalty: state.difficultyRules.oneThirdPenalty,
@@ -124,33 +176,45 @@ function handleCut(game, dt) {
   });
   state.player.cutProgress = 0;
   state.player.cutTarget = null;
-  if (!result) return;
+  if (!results.length) return;
 
-  const scored = pointsForCut(result, game.config);
-  applyPoints(state.economy, scored.points);
-  const character = state.characters[0];
-  if (character) character.stats.cellsCut += 1;
-
-  if (result.oneThird) {
+  const character = activeCharacter(state);
+  let gained = 0;
+  let oneThird = false;
+  let scalped = false;
+  for (const result of results) {
+    const scored = pointsForCut(result, game.config);
+    applyPoints(state.economy, scored.points);
+    gained += Math.max(0, scored.points);
+    logCut(state, scored, result);
+    if (result.oneThird) oneThird = true;
+    if (result.scalped) scalped = true;
+    character.stats.cellsCut += 1;
+    character.needs.energy = Math.max(0, character.needs.energy - (tool.energyPerCell || 1));
+  }
+  const levels = addXp(character, gained);
+  if (levels) showToast(game.hud, `Level up! You are level ${character.level}.`);
+  else if (oneThird) {
     showToast(
       game.hud,
       "One third rule: do not cut more than one third of the blade. The grass is stressed."
     );
-  } else if (result.scalped) {
-    showToast(game.hud, "Scalped: that patch is too short. Aim for about 3 inches.");
-  } else if (scored.kind === "clean") {
-    showToast(game.hud, "+2 clean cut", 900);
-  } else if (scored.kind === "rough") {
-    showToast(game.hud, "+1 cut", 800);
+  } else if (scalped) {
+    showToast(game.hud, "Scalped: that patch is too short. Raise the deck or aim for 3 inches.");
+  } else if (gained > 0) {
+    showToast(game.hud, `+${gained} from the cut`, 800);
   }
 }
 
-function facingOrStandingCutTile(state, tileSize) {
-  const face = facingTile(state.player, tileSize);
-  if (isCuttable(state.lawn, face.x, face.y)) return face;
-  const here = tileAt(state.player, tileSize);
-  if (isCuttable(state.lawn, here.x, here.y)) return here;
-  return null;
+function logCut(state, scored, result) {
+  const log = state.dayLog;
+  if (!log) return;
+  log.cuts += 1;
+  if (scored.kind === "clean") log.clean += 1;
+  if (scored.kind === "rough") log.rough += 1;
+  if (result.scalped) log.scalped += 1;
+  if (result.oneThird) log.oneThird += 1;
+  log.points += scored.points;
 }
 
 function onHour(game, hour) {
@@ -162,18 +226,97 @@ function onHour(game, hour) {
   };
   const grown = tickGrowth(state.lawn, game.config, extras);
   const penalty = overgrownPenalty(grown.overgrownCount, game.config);
-  if (penalty > 0) applyPoints(state.economy, -penalty);
+  if (penalty > 0) {
+    applyPoints(state.economy, -penalty);
+    if (state.dayLog) {
+      state.dayLog.overgrown -= penalty;
+      state.dayLog.points -= penalty;
+    }
+  }
   if (hour === 12) {
     showToast(game.hud, `Noon · ${formatClock(state.clock)}`);
   }
 }
 
 function onDayEnd(game) {
+  const state = game.state;
+  const character = activeCharacter(state);
+  const over = countOvergrown(state.lawn, game.config.lawn.overgrownHeight);
+  const grass = grassCellCount(state.lawn);
+  const tall = countOvergrown(state.lawn, 4.5);
+  const avg = averageHeight(state.lawn);
+  void avg;
+
+  let bonus = 0;
+  if (tall / grass < 0.3 && (state.dayLog?.cuts || 0) > grass * 0.15) {
+    bonus += 100;
+    if (state.dayLog) state.dayLog.ontime = 100;
+  }
+  let healthSum = 0;
+  for (let i = 0; i < state.lawn.health.length; i++) {
+    if (state.lawn.kind[i] === 0) healthSum += state.lawn.health[i];
+  }
+  const avgHealth = grass ? healthSum / grass : 0;
+  if (avgHealth >= 80) {
+    bonus += 50;
+    if (state.dayLog) state.dayLog.healthy = 50;
+  }
+  if (bonus) applyPoints(state.economy, bonus);
+  addXp(character, Math.max(0, bonus));
+  character.needs.energy = 100;
+  character.stats.lawnsMowed += 1;
+
+  const coinsNow = state.economy.coins;
+  const coinsEarned = coinsNow - (state.dayLog?.coinsStart || coinsNow);
+  const lines = [
+    { label: "Clean cuts", value: `+${(state.dayLog?.clean || 0) * 2}` },
+    { label: "Rough cuts", value: `+${state.dayLog?.rough || 0}` },
+    { label: "Scalped", value: `-${(state.dayLog?.scalped || 0) * 10}` },
+    { label: "Overgrown hours", value: `${state.dayLog?.overgrown || 0}` },
+    { label: "On-time mow", value: state.dayLog?.ontime ? "+100" : "0" },
+    { label: "Healthy lawn day", value: state.dayLog?.healthy ? "+50" : "0" },
+    { label: "Coins now", value: `${coinsNow} (${coinsEarned >= 0 ? "+" : ""}${coinsEarned} today)` },
+    { label: "Overgrown cells", value: `${over} / ${grass}` },
+  ];
+
   game.save();
-  const over = countOvergrown(game.state.lawn, game.config.lawn.overgrownHeight);
-  const cells = game.state.lawn.width * game.state.lawn.height;
-  showToast(
-    game.hud,
-    `A new day. ${over} overgrown cells out of ${cells}. Progress saved.`
+  resetDayLog(state);
+  game.scenes.push(
+    createSummaryScene(game, {
+      day: state.clock.day - 1,
+      lines,
+      tip: pickTip(game.tips, state.clock.day),
+      forecast: "Sunny (forecasts arrive in the weather update)",
+    })
   );
+}
+
+export function resetDayLog(state) {
+  state.dayLog = {
+    cuts: 0,
+    clean: 0,
+    rough: 0,
+    scalped: 0,
+    oneThird: 0,
+    overgrown: 0,
+    points: 0,
+    ontime: 0,
+    healthy: 0,
+    coinsStart: state.economy.coins,
+  };
+}
+
+export function emptyDayLog() {
+  return {
+    cuts: 0,
+    clean: 0,
+    rough: 0,
+    scalped: 0,
+    oneThird: 0,
+    overgrown: 0,
+    points: 0,
+    ontime: 0,
+    healthy: 0,
+    coinsStart: 0,
+  };
 }
