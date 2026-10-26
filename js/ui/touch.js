@@ -4,19 +4,24 @@ export function shouldShowTouch() {
   return navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches;
 }
 
+export function setTouchVisible(wrap, on) {
+  if (wrap) wrap.classList.toggle("hidden", !on);
+}
+
 export function mountTouch(app, inputInject) {
   const wrap = el(`
-    <div id="touch" class="touch-layer">
+    <div id="touch" class="touch-layer hidden">
       <div class="stick" id="stick"><i></i></div>
       <div class="touch-btns">
-        <button data-k="use">Cut</button>
-        <button data-k="interact">E</button>
-        <button data-k="switchTool">Q</button>
-        <button data-k="overlay">H</button>
-        <button data-k="pause">II</button>
+        <button type="button" data-k="use">Cut</button>
+        <button type="button" data-k="interact">E</button>
+        <button type="button" data-k="switchTool">Q</button>
+        <button type="button" data-k="overlay">H</button>
+        <button type="button" data-k="pause">II</button>
       </div>
     </div>
   `);
+  if (!shouldShowTouch()) wrap.classList.add("click-only");
   app.appendChild(wrap);
   const stick = wrap.querySelector("#stick");
   const knob = stick.querySelector("i");
@@ -38,31 +43,43 @@ export function mountTouch(app, inputInject) {
     knob.style.transform = `translate(${x * 22}px, ${y * 22}px)`;
   }
 
-  stick.addEventListener("touchstart", (e) => {
+  stick.addEventListener("pointerdown", (e) => {
     active = true;
-    setVec(e.touches[0].clientX, e.touches[0].clientY);
+    try {
+      stick.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    setVec(e.clientX, e.clientY);
     e.preventDefault();
-  }, { passive: false });
-  stick.addEventListener("touchmove", (e) => {
-    if (active) setVec(e.touches[0].clientX, e.touches[0].clientY);
-    e.preventDefault();
-  }, { passive: false });
+  });
+  stick.addEventListener("pointermove", (e) => {
+    if (active) setVec(e.clientX, e.clientY);
+  });
   const end = () => {
     active = false;
     inputInject.axis.x = 0;
     inputInject.axis.y = 0;
     knob.style.transform = "";
   };
-  stick.addEventListener("touchend", end);
-  stick.addEventListener("touchcancel", end);
+  stick.addEventListener("pointerup", end);
+  stick.addEventListener("pointercancel", end);
 
   wrap.querySelectorAll("[data-k]").forEach((btn) => {
     const key = btn.dataset.k;
-    btn.addEventListener("touchstart", (e) => {
+    const start = (e) => {
       inputInject.hold(key, true);
       e.preventDefault();
-    }, { passive: false });
-    btn.addEventListener("touchend", () => inputInject.hold(key, false));
+    };
+    const stop = (e) => {
+      inputInject.hold(key, false);
+      if (e) e.preventDefault();
+    };
+    btn.addEventListener("pointerdown", start);
+    btn.addEventListener("pointerup", stop);
+    btn.addEventListener("pointerleave", stop);
+    btn.addEventListener("pointercancel", stop);
+    btn.addEventListener("contextmenu", (e) => e.preventDefault());
   });
   return wrap;
 }

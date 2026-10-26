@@ -6,6 +6,9 @@ import {
   cutCell,
   SEASON_MULT,
   KIND,
+  cellNeedsCut,
+  ensureTallEnoughLawn,
+  averageHeight,
 } from "../js/sim/lawn.js";
 import { pointsForCut, applyPoints } from "../js/sim/scoring.js";
 import { serializeState, migrate, hydrateLawn } from "../js/save.js";
@@ -13,7 +16,7 @@ import { applyLayout } from "../js/sim/lawn.js";
 import { effectiveQuality } from "../js/entities/tools.js";
 import { addXp, xpToNext } from "../js/sim/xp.js";
 import { canBuyTool, buyTool, makeOwnedTool } from "../js/sim/shop.js";
-import { isEdgeCell, toolCanCutCell, toolBlockedReason, swathTiles } from "../js/sim/cutting.js";
+import { isEdgeCell, toolCanCutCell, toolBlockedReason, swathTiles, cutAttemptTiles } from "../js/sim/cutting.js";
 import { waterEfficiency, applyWater } from "../js/sim/care.js";
 import { weatherForDay } from "../js/sim/weather.js";
 import { jobPay } from "../js/sim/jobs.js";
@@ -194,6 +197,40 @@ assert(
 
 const swath = swathTiles({ x: 4, y: 5 }, "up", 3);
 assert("Width-3 swath is 3 tiles", swath.length === 3 && swath.every((t) => t.y === 4), JSON.stringify(swath));
+
+const attempt = cutAttemptTiles({ x: 4, y: 5 }, "up", 1);
+assert(
+  "Cut attempt includes standing cell and facing cell",
+  attempt.some((t) => t.x === 4 && t.y === 5) && attempt.some((t) => t.x === 4 && t.y === 4) && attempt.length === 2,
+  JSON.stringify(attempt)
+);
+
+cutLawn.heightArr[gi] = 3;
+cutLawn.health[gi] = 100;
+const alreadyShort = cutCell(cutLawn, gx, gy, 3, 0.9, 10, {
+  minHeight: 0.5,
+  scalpHeight: 1.5,
+  oneThirdPenalty: 15,
+  oneThirdWarningOnly: false,
+});
+assert("Already-short cell is a no-op", alreadyShort === null, String(alreadyShort));
+assert("cellNeedsCut is false at target", !cellNeedsCut(cutLawn, gx, gy, 3, 0.5), "");
+cutLawn.heightArr[gi] = 4.2;
+assert("cellNeedsCut is true when tall", cellNeedsCut(cutLawn, gx, gy, 3, 0.5), "");
+
+const shortSave = createLawn(8, 8, createRng(5), {
+  ...config,
+  lawn: { ...config.lawn, startHeightMin: 2.6, startHeightMax: 2.6 },
+});
+const firstBoost = ensureTallEnoughLawn(shortSave, config, false);
+assert(
+  "Short save lawns get a visible height boost",
+  firstBoost.boosted && firstBoost.average > 4,
+  `avg=${firstBoost.average.toFixed(2)} boosted=${firstBoost.boosted}`
+);
+const skipBoost = ensureTallEnoughLawn(shortSave, config, true);
+assert("Height boost does not repeat when flagged", !skipBoost.boosted, `avg=${skipBoost.average.toFixed(2)}`);
+assert("averageHeight matches boosted lawn", Math.abs(averageHeight(shortSave) - firstBoost.average) < 1e-6, "");
 
 assert("Watering time: 7am is full, noon is 60%", waterEfficiency(7) === 1 && waterEfficiency(12) === 0.6, `${waterEfficiency(7)} ${waterEfficiency(12)}`);
 

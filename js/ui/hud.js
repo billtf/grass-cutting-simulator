@@ -18,7 +18,7 @@ export function mountHud(root) {
       <div class="hud-chip" id="hud-energy">Energy 100 · Water 100 · Mood 100</div>
     </div>
     <div class="hud-bar hud-bottom">
-      <div class="hud-chip" id="hud-hint">WASD move · Space cut · Q switch tool · E shed · H overlay</div>
+      <div class="hud-chip" id="hud-hint">WASD move · click/Space cut · Q tool · E shed · H overlay</div>
       <div class="hud-chip hidden" id="hud-toast"></div>
     </div>
   `;

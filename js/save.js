@@ -53,7 +53,9 @@ export function serializeState(state) {
       season: state.game.season,
       weatherToday: state.game.weatherToday,
       weatherTomorrow: state.game.weatherTomorrow,
+      weatherTomorrowActual: state.game.weatherTomorrowActual,
       dayLengthMinutes: state.game.dayLengthMinutes,
+      cutVisBoost: state.game.cutVisBoost || 0,
     },
     economy: { ...state.economy },
     lawn: {

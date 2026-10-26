@@ -1,13 +1,15 @@
 import * as input from "../../input.js";
 import { advanceClock, formatClock } from "../../clock.js";
-import { tickGrowth, countOvergrown, isShed, isCuttable, averageHeight, grassCellCount, cutCell, KIND, SEASON_MULT } from "../../sim/lawn.js";
+import { tickGrowth, countOvergrown, isShed, isCuttable, averageHeight, grassCellCount, cutCell, KIND, SEASON_MULT, cellNeedsCut } from "../../sim/lawn.js";
 import { pointsForCut, applyPoints, overgrownPenalty } from "../../sim/scoring.js";
 import { movePlayer, tileAt, facingTile } from "../../entities/player.js";
 import { findTool, findAnyTool, cycleTool, selectSlot, cutSecondsFor, targetHeightFor, nudgeDeck } from "../../entities/tools.js";
 import { follow } from "../../render/camera.js";
 import { paintDirty, drawAtlas, drawPlayer, drawCutProgress } from "../../render/lawn.js";
+import { drawFx, drawWeather, spawnSnip, tickFx } from "../../render/fx.js";
 import { updateHud, showToast } from "../hud.js";
-import { swathTiles, toolCanCutCell, toolBlockedReason, performSwath } from "../../sim/cutting.js";
+import { cutAttemptTiles, toolCanCutCell, toolBlockedReason, performSwath } from "../../sim/cutting.js";
+import { setTouchVisible } from "../touch.js";
 import { activeCharacter, addXp } from "../../sim/xp.js";
 import { createShedScene } from "./shed.js";
 import { endJob } from "../../sim/away.js";
@@ -40,14 +42,16 @@ export function createLawnScene(game) {
     blocksUpdate: true,
     enter() {
       game.hudEl.classList.add("active");
+      setTouchVisible(game.touchEl, true);
       updateHud(game.hud, game.state, game.allTools, game.weatherTable);
       if (game.state.tutorialStep === 0) {
-        showToast(game.hud, "Welcome! WASD to walk. Hold Space to cut. E at the shed. Press H for maps. Skip: just play.", 6000);
+        showToast(game.hud, "Welcome! WASD to walk. Click Cut, tap the lawn, or hold Space. E at the shed. H for maps.", 6000);
         game.state.tutorialStep = 1;
       }
     },
     exit() {
       game.hudEl.classList.remove("active");
+      setTouchVisible(game.touchEl, false);
     },
     update(dt, g) {
       const state = g.state;
@@ -154,6 +158,7 @@ export function createLawnScene(game) {
       }
 
       follow(g.camera, state.player, state.lawn, g.config.tileSize);
+      tickFx(g.fx, dt);
       updateHud(g.hud, state, g.allTools, g.weatherTable);
       if (g.debug.open) g.debug.tick(g, dt);
       void here;
@@ -167,11 +172,16 @@ export function createLawnScene(game) {
       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       drawAtlas(ctx, g.atlas, g.camera);
       drawCutProgress(ctx, state.player, g.camera, g.config.tileSize);
-      drawPlayer(ctx, state.player, g.camera, g.config.tileSize, activeCharacter(state));
+      drawPlayer(ctx, state.player, g.camera, g.config.tileSize, activeCharacter(state), state.inventory.equippedTool);
+      drawFx(ctx, g.fx, g.camera);
+      drawWeather(ctx, state.game.weatherToday, g.fx?.t || 0, state.settings.reducedMotion);
       const mw = 48;
       const mh = 36;
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
-      ctx.fillRect(ctx.canvas.width - mw - 4, 4, mw + 2, mh + 2);
+      ctx.fillStyle = "#1b2a14";
+      ctx.fillRect(ctx.canvas.width - mw - 5, 3, mw + 4, mh + 4);
+      ctx.fillStyle = "#c5e1a5";
+      ctx.fillRect(ctx.canvas.width - mw - 4, 4, mw + 2, 1);
+      ctx.fillRect(ctx.canvas.width - mw - 4, 4, 1, mh + 2);
       ctx.drawImage(g.atlas.canvas, ctx.canvas.width - mw - 3, 5, mw, mh);
     },
   };
@@ -187,6 +197,22 @@ function nearShed(state, tileSize) {
   return false;
 }
 
+function usingCut() {
+  return input.down("use") || input.pressed("use") || input.released("use");
+}
+
+function tapCut() {
+  return (input.pressed("use") || input.released("use")) && !input.down("use");
+}
+
+function toastCut(game, msg, ms = 2200) {
+  const now = performance.now();
+  if (toastCut._m === msg && now - (toastCut._t || 0) < 1300) return;
+  toastCut._m = msg;
+  toastCut._t = now;
+  showToast(game.hud, msg, ms);
+}
+
 function handleCut(game, dt) {
   const state = game.state;
   const character = activeCharacter(state);
@@ -194,12 +220,29 @@ function handleCut(game, dt) {
   const owned = state.inventory.tools.find((t) => t.id === tool.id);
   if (!owned) return;
   const origin = tileAt(state.player, game.config.tileSize);
-  const tiles = swathTiles(origin, state.player.facing, tool.width || 1);
+  const tiles = cutAttemptTiles(origin, state.player.facing, tool.width || 1);
   const any = tiles.some((t) => toolCanCutCell(state.lawn, tool, t.x, t.y));
+  const target = targetHeightFor(tool, state.inventory, game.config);
+  const minH = game.config.lawn.minHeight;
+  const needsCut = tiles.some((t) => cellNeedsCut(state.lawn, t.x, t.y, target, minH) && toolCanCutCell(state.lawn, tool, t.x, t.y));
 
-  if (!input.down("use") || !any) {
+  if (!usingCut()) {
     state.player.cutProgress = 0;
     state.player.cutTarget = null;
+    return;
+  }
+
+  if (!any) {
+    state.player.cutProgress = 0;
+    state.player.cutTarget = null;
+    toastCut(game, "Nothing to cut here. Stand on grass or face a tall patch.");
+    return;
+  }
+
+  if (!needsCut) {
+    state.player.cutProgress = 0;
+    state.player.cutTarget = null;
+    toastCut(game, "This grass is already short enough. Wait for it to grow.");
     return;
   }
 
@@ -213,18 +256,15 @@ function handleCut(game, dt) {
   const blocked = toolBlockedReason(tool, owned, state.lawn, tiles);
   if (blocked) {
     state.player.cutProgress = 0;
-    if (!handleCut._blockToast || handleCut._blockToast !== blocked) {
-      showToast(game.hud, blocked);
-      handleCut._blockToast = blocked;
-    }
+    toastCut(game, blocked);
     return;
   }
 
-  const need = cutSecondsFor(tool, game.config);
-  state.player.cutProgress += dt / need;
+  const need = Math.min(cutSecondsFor(tool, game.config), 0.55);
+  if (tapCut()) state.player.cutProgress = 1;
+  else state.player.cutProgress += dt / need;
   if (state.player.cutProgress < 1) return;
 
-  const target = targetHeightFor(tool, state.inventory, game.config);
   const nowHour = (state.clock.day - 1) * 24 + state.clock.hour;
   const qMult =
     traitValue(character, game.traits, "qualityMult", { hour: state.clock.hour }, 1) *
@@ -238,7 +278,7 @@ function handleCut(game, dt) {
     target,
     nowHour,
     {
-      minHeight: game.config.lawn.minHeight,
+      minHeight: minH,
       scalpHeight: game.config.lawn.scalpHeight,
       oneThirdPenalty: state.difficultyRules.oneThirdPenalty,
       oneThirdWarningOnly: state.difficultyRules.oneThirdWarningOnly,
@@ -247,11 +287,15 @@ function handleCut(game, dt) {
   );
   state.player.cutProgress = 0;
   state.player.cutTarget = null;
-  if (!results.length) return;
+  if (!results.length) {
+    toastCut(game, "This grass is already short enough. Wait for it to grow.");
+    return;
+  }
 
   let gained = 0;
   let oneThird = false;
   let scalped = false;
+  const tileSize = game.config.tileSize;
   for (const result of results) {
     const scored = pointsForCut(result, game.config);
     applyPoints(state.economy, scored.points);
@@ -261,7 +305,9 @@ function handleCut(game, dt) {
     if (result.scalped) scalped = true;
     character.stats.cellsCut += 1;
     character.needs.energy = Math.max(0, character.needs.energy - (tool.energyPerCell || 1));
+    spawnSnip(game.fx, (result.x + 0.5) * tileSize, (result.y + 0.5) * tileSize, state.settings.reducedMotion);
   }
+  beep("snip", state.settings.volume ?? 0.7);
   const levels = addXp(character, gained);
   if (levels) showToast(game.hud, `Level up! You are level ${character.level}.`);
   else if (oneThird) {
@@ -270,9 +316,8 @@ function handleCut(game, dt) {
   } else if (scalped) {
     const tip = unlockTip(state, "scalp");
     showToast(game.hud, tip || "Scalped: that patch is too short. Aim for 3 inches.");
-  }   else if (gained > 0) {
-    showToast(game.hud, `+${gained} from the cut`, 800);
-    beep("snip", state.settings.volume ?? 0.7);
+  } else if (gained > 0) {
+    showToast(game.hud, `Snip! Grass dropped. +${gained}`, 900);
   }
 }
 
@@ -441,7 +486,7 @@ function handleCare(game, dt, tool) {
   const origin = tileAt(state.player, game.config.tileSize);
   const face = facingTile(state.player, game.config.tileSize);
   const center = isCuttable(state.lawn, face.x, face.y) ? face : origin;
-  if (!input.down("use")) {
+  if (!usingCut()) {
     state.player.cutProgress = 0;
     state.player.cutTarget = null;
     return;
@@ -452,7 +497,8 @@ function handleCare(game, dt, tool) {
     state.player.cutProgress = 0;
     state.player.cutTarget = center;
   }
-  state.player.cutProgress += dt / 0.8;
+  if (tapCut()) state.player.cutProgress = 1;
+  else state.player.cutProgress += dt / 0.45;
   if (state.player.cutProgress < 1) return;
   state.player.cutProgress = 0;
   const tiles = diskTiles(center.x, center.y, tool.radius || 0);

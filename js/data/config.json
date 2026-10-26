@@ -1,6 +1,6 @@
 {
   "name": "Grass Friend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "schemaVersion": 1,
   "saveKey": "grassfriend.save.v1",
   "tileSize": 16,
@@ -15,8 +15,8 @@
     "idealMax": 3.5,
     "overgrownHeight": 6,
     "scalpHeight": 1.5,
-    "startHeightMin": 2.5,
-    "startHeightMax": 4.0,
+    "startHeightMin": 4.5,
+    "startHeightMax": 6.2,
     "startMoisture": 55,
     "startHealth": 90
   },
@@ -44,7 +44,7 @@
     "morningWater": 20
   },
   "cut": {
-    "scissorsSeconds": 2,
+    "scissorsSeconds": 0.45,
     "scissorsTarget": 3
   },
   "fastForward": 8

@@ -180,6 +180,29 @@ export function tickGrowth(lawn, config, extras = {}) {
   return { overgrownCount };
 }
 
+export function cellNeedsCut(lawn, x, y, targetHeight, minHeight) {
+  if (!isCuttable(lawn, x, y)) return false;
+  const oldHeight = lawn.heightArr[indexOf(lawn, x, y)];
+  const next = clamp(targetHeight, minHeight, oldHeight);
+  return oldHeight - next >= 0.05;
+}
+
+/** One-time bump so old short saves (2.5–4 in) can show a visible first cut. */
+export function ensureTallEnoughLawn(lawn, config, alreadyBoosted) {
+  const average = averageHeight(lawn);
+  if (alreadyBoosted || average >= 3.8) return { boosted: false, average };
+  const bump = 2;
+  const minH = config.lawn.minHeight;
+  const maxH = config.lawn.maxHeight;
+  for (let i = 0; i < lawn.heightArr.length; i++) {
+    if (lawn.kind[i] !== KIND.grass) continue;
+    lawn.heightArr[i] = clamp(lawn.heightArr[i] + bump, minH, maxH);
+    lawn.dirty[i] = 1;
+  }
+  lawn.allDirty = true;
+  return { boosted: true, average: averageHeight(lawn) };
+}
+
 export function cutCell(lawn, x, y, targetHeight, quality, nowHour, rules) {
   if (!isCuttable(lawn, x, y)) return null;
   const i = indexOf(lawn, x, y);
