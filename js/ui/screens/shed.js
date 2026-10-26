@@ -1,7 +1,6 @@
 import { el, showOverlay, hideOverlay } from "../dom.js";
 import { pressed } from "../../input.js";
 import { findTool } from "../../entities/tools.js";
-import { activeCharacter } from "../../sim/xp.js";
 import {
   buyTool,
   buySupply,
@@ -13,6 +12,11 @@ import {
   refillLine,
 } from "../../sim/shop.js";
 import { showToast } from "../hud.js";
+import { traitValue } from "../../sim/traits.js";
+import { createJobBoardScene } from "./jobs.js";
+import { createProfilesScene } from "./profiles.js";
+import { createCreatorScene } from "./creator.js";
+import { activeCharacter } from "../../sim/xp.js";
 
 export function createShedScene(game) {
   let tab = "shop";
@@ -47,6 +51,9 @@ export function createShedScene(game) {
         <div class="tabs">
           <button class="btn ${tab === "shop" ? "primary" : ""}" data-act="tab-shop">Shop</button>
           <button class="btn ${tab === "bench" ? "primary" : ""}" data-act="tab-bench">Workbench</button>
+          <button class="btn ${tab === "jobs" ? "primary" : ""}" data-act="tab-jobs">Jobs</button>
+          <button class="btn" data-act="crew">Crew</button>
+          <button class="btn" data-act="mirror">Mirror</button>
         </div>
         <div class="shed-body"></div>
         <div class="btn-col">
@@ -71,9 +78,27 @@ export function createShedScene(game) {
         tab = "bench";
         render();
       }
+      if (act === "tab-jobs") {
+        game.scenes.push(createJobBoardScene(game));
+      }
+      if (act === "crew") {
+        game.scenes.push(createProfilesScene(game));
+      }
+      if (act === "mirror") {
+        game.scenes.push(
+          createCreatorScene(game, {
+            character,
+            onSave(draft) {
+              Object.assign(character, { look: draft.look, name: draft.name, catchphrase: draft.catchphrase });
+              game.save();
+            },
+          })
+        );
+      }
       if (act.startsWith("buy-")) {
         const id = act.slice(4);
         const tool = findTool(game.allTools, id);
+        state.shopPriceMult = traitValue(character, game.traits, "shopPriceMult", {}, 1);
         const result = buyTool(state, tool, character);
         showToast(game.hud, result.ok ? `Bought ${tool.name}!` : result.reason);
         if (result.ok) {

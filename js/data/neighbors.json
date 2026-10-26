@@ -1,0 +1,12 @@
+[
+  { "id": "n1", "name": "Mr. Alvarez", "personality": "picky", "house": "Oak St", "size": [24, 16], "tip": 0.25, "lineArrive": "Stripes straight, please.", "linePay": "Acceptable. Barely." },
+  { "id": "n2", "name": "Ms. Patel", "personality": "easygoing", "house": "Maple Ct", "size": [20, 14], "tip": 0.08, "minStars": 3, "lineArrive": "Whenever you can is fine.", "linePay": "Thanks, kid!" },
+  { "id": "n3", "name": "The Kims", "personality": "rushed", "house": "Pine Ave", "size": [22, 16], "tip": 0.12, "earlyBonus": 2, "lineArrive": "Be done before we get home.", "linePay": "You made it!" },
+  { "id": "n4", "name": "Grandma Rose", "personality": "garden", "house": "Rose Ln", "size": [18, 14], "tip": 0.2, "lineArrive": "Do not touch the flower beds.", "linePay": "The daisies thank you." },
+  { "id": "n5", "name": "Dave", "personality": "bargain", "house": "Budget Blvd", "size": [20, 16], "tip": 0.05, "payMult": 0.9, "lineArrive": "I can get this cheaper.", "linePay": "Yeah, all right." },
+  { "id": "n6", "name": "Coach Rivera", "personality": "easygoing", "house": "Field Rd", "size": [28, 18], "tip": 0.1, "lineArrive": "Just knock it down.", "linePay": "Looks like a ball field." },
+  { "id": "n7", "name": "Dr. Chen", "personality": "picky", "house": "Clinic Way", "size": [24, 18], "tip": 0.22, "lineArrive": "No missed corners.", "linePay": "Charted as satisfactory." },
+  { "id": "n8", "name": "The Nguyens", "personality": "rushed", "house": "Transit St", "size": [22, 14], "tip": 0.1, "earlyBonus": 2, "lineArrive": "We have a flight.", "linePay": "Perfect timing." },
+  { "id": "n9", "name": "Ms. Brooks", "personality": "garden", "house": "Bloom Pl", "size": [20, 16], "tip": 0.18, "lineArrive": "The tulips are sacred.", "linePay": "My beds are safe." },
+  { "id": "n10", "name": "Old Man Pike", "personality": "bargain", "house": "Thrift Trl", "size": [26, 18], "tip": 0.04, "payMult": 0.9, "lineArrive": "Don't pad the bill.", "linePay": "Hmph. Fine." }
+]

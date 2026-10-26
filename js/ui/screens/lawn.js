@@ -10,6 +10,8 @@ import { updateHud, showToast } from "../hud.js";
 import { swathTiles, toolCanCutCell, toolBlockedReason, performSwath } from "../../sim/cutting.js";
 import { activeCharacter, addXp } from "../../sim/xp.js";
 import { createShedScene } from "./shed.js";
+import { endJob } from "../../sim/away.js";
+import { traitValue, hasTraitFlag } from "../../sim/traits.js";
 import { createSummaryScene, pickTip } from "./summary.js";
 import {
   applyWater,
@@ -86,7 +88,9 @@ export function createLawnScene(game) {
       const move = input.moveVector();
       const character = activeCharacter(state);
       const tired = (character.needs.energy || 100) < 20;
-      const speed = g.config.player.speed * (tired ? 0.5 : 1);
+      const traitSpeed = traitValue(character, g.traits, "moveSpeedMult", { hour: state.clock.hour }, 1);
+      const skillSpeed = 1 + 0.03 * (character.skills?.speed || 0);
+      const speed = g.config.player.speed * (tired ? 0.5 : 1) * traitSpeed * skillSpeed;
       const moved = movePlayer(
         state.player,
         state.lawn,
@@ -97,7 +101,13 @@ export function createLawnScene(game) {
         dt
       );
       if (moved && character.needs) {
-        character.needs.energy = Math.max(0, character.needs.energy - dt * 0.4);
+        const drain = traitValue(character, g.traits, "energyDrainMult", { hour: state.clock.hour }, 1);
+        const heat = state.game.weatherToday === "heat" && !hasTraitFlag(character, g.traits, "heatImmune");
+        character.needs.energy = Math.max(0, character.needs.energy - dt * 0.4 * drain * (heat ? 1.4 : 1));
+        character.needs.hydration = Math.max(0, character.needs.hydration - dt * (heat ? 0.8 : 0.25));
+        if (character.needs.hydration < 20) {
+          character.needs.energy = Math.max(0, character.needs.energy - dt * 0.4);
+        }
       }
 
       const idle = !moved && !input.down("use");
@@ -115,8 +125,20 @@ export function createLawnScene(game) {
 
       const nearby = facingTile(state.player, g.config.tileSize);
       const here = tileAt(state.player, g.config.tileSize);
-      if (input.pressed("interact") && (isShed(state.lawn, nearby.x, nearby.y) || nearShed(state, g.config.tileSize))) {
-        g.scenes.push(createShedScene(g));
+      if (input.pressed("interact")) {
+        if (state.away) {
+          const report = endJob(g, true);
+          if (report) {
+            const line = report.stars >= 4 && report.catchphrase ? `${report.catchphrase} ` : "";
+            showToast(g.hud, `${line}${report.neighbor.linePay} ${report.stars}★ +${report.pay} coins`, 4200);
+          }
+        } else if (isShed(state.lawn, nearby.x, nearby.y) || nearShed(state, g.config.tileSize)) {
+          g.scenes.push(createShedScene(g));
+        } else if (here.y >= 4 && here.y <= 5 && here.x >= 14 && here.x <= 17) {
+          character.needs.energy = Math.min(100, character.needs.energy + 15);
+          character.needs.mood = Math.min(100, character.needs.mood + 8);
+          showToast(g.hud, "You sit on the porch. Energy and mood go up.");
+        }
       }
 
       const stepped = advanceClock(state.clock, dt, state.game.dayLengthMinutes, rate);
@@ -141,7 +163,7 @@ export function createLawnScene(game) {
       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       drawAtlas(ctx, g.atlas, g.camera);
       drawCutProgress(ctx, state.player, g.camera, g.config.tileSize);
-      drawPlayer(ctx, state.player, g.camera, g.config.tileSize);
+      drawPlayer(ctx, state.player, g.camera, g.config.tileSize, activeCharacter(state));
     },
   };
 }
@@ -158,6 +180,7 @@ function nearShed(state, tileSize) {
 
 function handleCut(game, dt) {
   const state = game.state;
+  const character = activeCharacter(state);
   const tool = findTool(game.tools, state.inventory.equippedTool);
   const owned = state.inventory.tools.find((t) => t.id === tool.id);
   if (!owned) return;
@@ -194,17 +217,29 @@ function handleCut(game, dt) {
 
   const target = targetHeightFor(tool, state.inventory, game.config);
   const nowHour = (state.clock.day - 1) * 24 + state.clock.hour;
-  const { results } = performSwath(state.lawn, tiles, tool, owned, target, nowHour, {
-    minHeight: game.config.lawn.minHeight,
-    scalpHeight: game.config.lawn.scalpHeight,
-    oneThirdPenalty: state.difficultyRules.oneThirdPenalty,
-    oneThirdWarningOnly: state.difficultyRules.oneThirdWarningOnly,
-  });
+  const qMult =
+    traitValue(character, game.traits, "qualityMult", { hour: state.clock.hour }, 1) *
+    (1 + 0.03 * (character.skills?.precision || 0)) *
+    ((character.needs?.mood || 100) < 30 ? 0.9 : 1);
+  const { results } = performSwath(
+    state.lawn,
+    tiles,
+    tool,
+    owned,
+    target,
+    nowHour,
+    {
+      minHeight: game.config.lawn.minHeight,
+      scalpHeight: game.config.lawn.scalpHeight,
+      oneThirdPenalty: state.difficultyRules.oneThirdPenalty,
+      oneThirdWarningOnly: state.difficultyRules.oneThirdWarningOnly,
+    },
+    qMult
+  );
   state.player.cutProgress = 0;
   state.player.cutTarget = null;
   if (!results.length) return;
 
-  const character = activeCharacter(state);
   let gained = 0;
   let oneThird = false;
   let scalped = false;
@@ -310,7 +345,9 @@ function onDayEnd(game) {
   }
   if (bonus) applyPoints(state.economy, bonus);
   addXp(character, Math.max(0, bonus));
-  character.needs.energy = 100;
+  const startE = traitValue(character, game.traits, "startEnergy", {}, 0);
+  character.needs.energy = startE || 100;
+  character.needs.hydration = 100;
   character.stats.lawnsMowed += 1;
 
   const season = seasonForDay(state.clock.day, game.weatherTable.daysPerSeason);

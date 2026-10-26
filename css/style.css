@@ -337,6 +337,32 @@ h1 {
   margin: 4px 0 0;
 }
 
+.trait-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 28vh;
+  overflow: auto;
+  margin-bottom: 10px;
+}
+
+.trait {
+  background: #e8f5e9;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.trait.on {
+  background: #fff8e1;
+  border: 2px solid #f9a825;
+}
+
+.look-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 noscript p {
   padding: 24px;
 }

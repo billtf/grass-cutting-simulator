@@ -16,6 +16,8 @@ import { canBuyTool, buyTool, makeOwnedTool } from "../js/sim/shop.js";
 import { isEdgeCell, toolCanCutCell, toolBlockedReason, swathTiles } from "../js/sim/cutting.js";
 import { waterEfficiency, applyWater } from "../js/sim/care.js";
 import { weatherForDay } from "../js/sim/weather.js";
+import { jobPay } from "../js/sim/jobs.js";
+import { traitValue } from "../js/sim/traits.js";
 
 const results = document.getElementById("results");
 const summary = document.getElementById("summary");
@@ -218,8 +220,18 @@ for (let d = 1; d <= 30; d++) {
 }
 assert("Seeded weather: same seed, same 30 days", a.join() === b.join(), a.slice(0, 5).join(","));
 
-skip("Pay formula", "Phase 3 — not implemented yet");
-skip("Traits", "Phase 3 — not implemented yet");
+assert(
+  "Pay formula: quality 0.9 on time no tip is 1.4x",
+  jobPay(100, 0.9, 1, 0) === 140,
+  String(jobPay(100, 0.9, 1, 0))
+);
+const speedster = { traits: ["speedster"] };
+const traits = [
+  { id: "speedster", modifiers: [{ stat: "moveSpeedMult", value: 1.2 }, { stat: "qualityMult", value: 0.95 }] },
+  { id: "penny_pincher", modifiers: [{ stat: "shopPriceMult", value: 0.9 }] },
+];
+assert("Traits: Speedster +20% move", traitValue(speedster, traits, "moveSpeedMult", {}, 1) === 1.2, String(traitValue(speedster, traits, "moveSpeedMult", {}, 1)));
+assert("Traits: Penny Pincher 10% off", traitValue({ traits: ["penny_pincher"] }, traits, "shopPriceMult", {}, 1) === 0.9, "");
 
 const fakeState = {
   schemaVersion: 1,

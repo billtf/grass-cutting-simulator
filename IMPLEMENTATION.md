@@ -132,27 +132,29 @@ Goal: the lawn is alive; ignoring water, weeds, or the forecast costs points, an
 
 Goal: players build and restyle their own crew, and earn by mowing for neighbors. Tag `v0.4`.
 
+**Status (2026-10-26):** P3.1–P3.16 implemented. Shed → Crew / Mirror / Jobs. Settings export/import. v1 saves migrate to schemaVersion 2.
+
 **Characters (16 h)**
 
-- [ ] **P3.1 Character data (1 h).** Character object per the spec data model; up to 4 per save; `traits.json`.
-- [ ] **P3.2 Sprite composer (4 h).** Layered sprites (body, skin, hair, eyes, outfit, hat, shoes) drawn to one cached canvas per character; 4 walk directions.
-- [ ] **P3.3 Character creator (3 h).** Name entry (12 characters), look pickers with live preview, pick 2 traits, catchphrase.
-- [ ] **P3.4 Profile manager (2 h).** Create, rename, change look, swap traits once per season, duplicate, delete with confirm, set active, stats view.
-- [ ] **P3.5 Shed mirror (0.5 h).** Opens the look editor for the active character.
-- [ ] **P3.6 Trait modifiers (2 h).** Modifier engine reads `traits.json` (stat, value, when) and applies to speed, quality, energy, prices.
-- [ ] **P3.7 Needs (2 h).** Energy, hydration, mood drain and restore (porch, cooler, snacks, sleep); low need effects.
-- [ ] **P3.8 Levels and skills (1.5 h).** Per character XP, skill points for Stamina, Precision, Speed, Botany.
+- [x] **P3.1 Character data (1 h).** Character object per the spec data model; up to 4 per save; `traits.json`.
+- [x] **P3.2 Sprite composer (4 h).** Layered sprites (body, skin, hair, eyes, outfit, hat, shoes) drawn to one cached canvas per character; 4 walk directions.
+- [x] **P3.3 Character creator (3 h).** Name entry (12 characters), look pickers with live preview, pick 2 traits, catchphrase.
+- [x] **P3.4 Profile manager (2 h).** Create, rename, change look, swap traits once per season, duplicate, delete with confirm, set active, stats view.
+- [x] **P3.5 Shed mirror (0.5 h).** Opens the look editor for the active character.
+- [x] **P3.6 Trait modifiers (2 h).** Modifier engine reads `traits.json` (stat, value, when) and applies to speed, quality, energy, prices.
+- [x] **P3.7 Needs (2 h).** Energy, hydration, mood drain and restore (porch, cooler, snacks, sleep); low need effects.
+- [x] **P3.8 Levels and skills (1.5 h).** Per character XP, skill points for Stamina, Precision, Speed, Botany.
 
 **Neighbor jobs (16 h)**
 
-- [ ] **P3.9 Neighbor and job data (1.5 h).** `neighbors.json` (10 neighbors, personality, lawn layout seed) and `jobs.json` (7 job types).
-- [ ] **P3.10 Job board (2.5 h).** Shed door board generates daily offers by level and reputation; accept up to 2 (4 at 4 stars).
-- [ ] **P3.11 Neighbor lawn scene (3 h).** Reuse the lawn engine with a temporary grid per job; travel by walking out the gate; time window clock.
-- [ ] **P3.12 Job tasks and inspection (3 h).** Task checklist per job, inspection scoring, pay formula, tip by personality.
-- [ ] **P3.13 Ratings and reputation (1.5 h).** 1 to 5 stars, last 10 average, unlocks and the 2 star limit.
-- [ ] **P3.14 Weekly regulars (1.5 h).** Recurring bookings with the 4 visit streak bonus.
-- [ ] **P3.15 Neighbor dialogue (1.5 h).** Short lines per personality on arrival and payment.
-- [ ] **P3.16 Save migration to v2 (1.5 h).** Add `characters` fields and the `jobs` block; migrate v1 saves; export and import save in Settings.
+- [x] **P3.9 Neighbor and job data (1.5 h).** `neighbors.json` (10 neighbors, personality, lawn layout seed) and `jobs.json` (7 job types).
+- [x] **P3.10 Job board (2.5 h).** Shed door board generates daily offers by level and reputation; accept up to 2 (4 at 4 stars).
+- [x] **P3.11 Neighbor lawn scene (3 h).** Reuse the lawn engine with a temporary grid per job; travel by walking out the gate; time window clock.
+- [x] **P3.12 Job tasks and inspection (3 h).** Task checklist per job, inspection scoring, pay formula, tip by personality.
+- [x] **P3.13 Ratings and reputation (1.5 h).** 1 to 5 stars, last 10 average, unlocks and the 2 star limit.
+- [x] **P3.14 Weekly regulars (1.5 h).** Recurring bookings with the 4 visit streak bonus.
+- [x] **P3.15 Neighbor dialogue (1.5 h).** Short lines per personality on arrival and payment.
+- [x] **P3.16 Save migration to v2 (1.5 h).** Add `characters` fields and the `jobs` block; migrate v1 saves; export and import save in Settings.
 
 **Done when:** 4 characters with different traits play measurably differently, a job can be taken, finished, rated, and paid, and an old v1 save loads cleanly.
 

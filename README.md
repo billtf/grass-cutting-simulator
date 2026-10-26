@@ -25,6 +25,7 @@ Then open http://localhost:8000/
 | Move | WASD or arrow keys |
 | Cut (hold) | Space |
 | Open shed | E (stand next to the brown shed) |
+| Sit on the porch | E on the path in front of the house |
 | Switch tool | Q or 1–9 |
 | Deck height | Z / X (mowers) |
 | Overlays (height / moisture / health) | H |

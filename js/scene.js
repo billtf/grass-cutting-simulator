@@ -22,7 +22,7 @@ export class SceneManager {
     const scene = this.stack.pop();
     scene?.exit?.();
     const top = this.top();
-    if (top?.id === "title" || top?.id === "pause" || top?.id === "settings" || top?.id === "shed" || top?.id === "summary" || top?.id === "almanac") {
+    if (["title", "pause", "settings", "shed", "summary", "almanac", "profiles", "creator", "jobs"].includes(top?.id)) {
       top.enter?.();
     }
     return scene;

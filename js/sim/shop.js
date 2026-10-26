@@ -9,8 +9,9 @@ export function canBuyTool(state, tool, character) {
   if ((character.level || 1) < tool.unlockLevel) {
     return { ok: false, reason: `Unlocks at level ${tool.unlockLevel}.` };
   }
-  if ((state.economy.coins || 0) < tool.cost) {
-    return { ok: false, reason: `Need ${tool.cost} coins.` };
+  const price = Math.round((tool.cost || 0) * (state.shopPriceMult || 1));
+  if ((state.economy.coins || 0) < price) {
+    return { ok: false, reason: `Need ${price} coins.` };
   }
   return { ok: true };
 }
@@ -18,7 +19,8 @@ export function canBuyTool(state, tool, character) {
 export function buyTool(state, tool, character) {
   const check = canBuyTool(state, tool, character);
   if (!check.ok) return check;
-  state.economy.coins -= tool.cost;
+  const price = Math.round((tool.cost || 0) * (state.shopPriceMult || 1));
+  state.economy.coins -= price;
   state.inventory.tools.push(makeOwnedTool(tool));
   return { ok: true };
 }
