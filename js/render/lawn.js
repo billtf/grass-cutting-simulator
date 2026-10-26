@@ -2,6 +2,7 @@
 
 import { cellFill } from "./colors.js";
 import { isEdgeCell } from "../sim/cutting.js";
+import { drawCharacter } from "./character.js";
 
 export function createLawnAtlas(lawn, tileSize) {
   const canvas = document.createElement("canvas");
@@ -93,9 +94,13 @@ export function drawAtlas(ctx, atlas, camera) {
   );
 }
 
-export function drawPlayer(ctx, player, camera, tileSize) {
+export function drawPlayer(ctx, player, camera, tileSize, character) {
   const sx = Math.round(player.x - camera.x);
   const sy = Math.round(player.y - camera.y);
+  if (character) {
+    drawCharacter(ctx, character, sx, sy, player.facing);
+    return;
+  }
   const r = 6;
   ctx.fillStyle = "#1565c0";
   ctx.fillRect(sx - r, sy - r, r * 2, r * 2);

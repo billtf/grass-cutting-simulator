@@ -10,6 +10,7 @@ import { createTitleScene } from "./ui/screens/title.js";
 import { createLawnScene } from "./ui/screens/lawn.js";
 import { makeOwnedTool } from "./sim/shop.js";
 import { weatherForDay } from "./sim/weather.js";
+import { emptyJobs } from "./sim/jobs.js";
 import { createPauseScene } from "./ui/screens/pause.js";
 import { createSettingsScene } from "./ui/screens/settings.js";
 import {
@@ -21,7 +22,7 @@ import {
 import { createDebug } from "./debug.js";
 
 export class Game {
-  constructor(config, tools, difficulty, shop, tips, care, weather, els) {
+  constructor(config, tools, difficulty, shop, tips, care, weather, traits, neighbors, jobTypes, els) {
     this.config = config;
     this.tools = tools;
     this.difficultyTable = difficulty;
@@ -29,6 +30,9 @@ export class Game {
     this.tips = tips;
     this.care = care;
     this.weatherTable = weather;
+    this.traits = traits;
+    this.neighbors = neighbors;
+    this.jobTypes = jobTypes;
     this.careTools = care.tools || [];
     this.allTools = [...tools, ...(care.tools || [])];
     this.canvas = els.canvas;
@@ -158,7 +162,7 @@ export class Game {
     const today = weatherForDay(rng, 1, rules.forecastAccuracy, this.weatherTable);
     const tomorrow = weatherForDay(rng, 2, rules.forecastAccuracy, this.weatherTable);
     return {
-      schemaVersion: this.config.schemaVersion,
+      schemaVersion: 2,
       createdAt: new Date().toISOString(),
       seed,
       rng,
@@ -198,7 +202,7 @@ export class Game {
             hat: 0,
             shoes: 0,
           },
-          traits: [],
+          traits: ["speedster"],
           catchphrase: "Fresh cut!",
           level: 1,
           xp: 0,
@@ -221,6 +225,7 @@ export class Game {
       },
       almanac: [],
       care: { sprinklers: [], timed: false },
+      jobs: emptyJobs(),
       settings: { volume: 0.7, colorblind: false, reducedMotion: false },
       dayLog: {
         cuts: 0,
@@ -284,6 +289,7 @@ export class Game {
       settings: saved.settings || { volume: 0.7, colorblind: false, reducedMotion: false },
       almanac: saved.almanac || [],
       care: saved.care || { sprinklers: [], timed: false },
+      jobs: saved.jobs || emptyJobs(),
       dayLog: saved.dayLog || {
         cuts: 0,
         clean: 0,

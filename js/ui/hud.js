@@ -15,7 +15,7 @@ export function mountHud(root) {
     </div>
     <div class="hud-bar hud-mid">
       <div class="hud-chip" id="hud-tool">Scissors</div>
-      <div class="hud-chip" id="hud-energy">Energy 100</div>
+      <div class="hud-chip" id="hud-energy">Energy 100 · Water 100 · Mood 100</div>
     </div>
     <div class="hud-bar hud-bottom">
       <div class="hud-chip" id="hud-hint">WASD move · Space cut · Q switch tool · E shed · H overlay</div>
@@ -54,8 +54,8 @@ export function updateHud(nodes, state, tools) {
   if (tool.needsFuel) toolText += ` · fuel ${Math.round(owned.fuel || 0)}`;
   if (tool.kind === "trimmer") toolText += ` · line ${Math.round(owned.line || 0)}`;
   nodes.tool.textContent = toolText;
-  const energy = Math.round(character?.needs?.energy ?? 100);
-  nodes.energy.textContent = `Energy ${energy}`;
+  const n = character?.needs || {};
+  nodes.energy.textContent = `Energy ${Math.round(n.energy ?? 100)} · Water ${Math.round(n.hydration ?? 100)} · Mood ${Math.round(n.mood ?? 100)}`;
 }
 
 export function showToast(nodes, text, ms = 2600) {

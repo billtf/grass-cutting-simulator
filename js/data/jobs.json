@@ -1,0 +1,9 @@
+[
+  { "id": "quick_trim", "name": "Quick trim", "unlockLevel": 3, "basePay": 60, "tasks": ["mow"], "hours": 3, "height": [3, 4.5] },
+  { "id": "full_mow", "name": "Full mow", "unlockLevel": 6, "basePay": 150, "tasks": ["mow", "edges"], "hours": 5, "height": [3, 5] },
+  { "id": "overgrown_rescue", "name": "Overgrown rescue", "unlockLevel": 9, "basePay": 300, "tasks": ["mow"], "hours": 6, "height": [6, 8] },
+  { "id": "weekly_regular", "name": "Weekly regular", "unlockLevel": 11, "basePay": 120, "tasks": ["mow"], "hours": 4, "height": [3.2, 4.2], "regular": true },
+  { "id": "vacation_sitter", "name": "Vacation sitter", "unlockLevel": 14, "basePay": 400, "tasks": ["mow", "water"], "hours": 8, "height": [3, 5] },
+  { "id": "lawn_makeover", "name": "Lawn makeover", "unlockLevel": 18, "basePay": 800, "tasks": ["mow", "weeds", "seed", "fertilizer"], "hours": 8, "height": [4, 6] },
+  { "id": "big_estate", "name": "Big estate", "unlockLevel": 24, "basePay": 1500, "tasks": ["mow", "edges"], "hours": 8, "height": [3, 5], "minWidth": 6 }
+]

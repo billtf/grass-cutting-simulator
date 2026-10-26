@@ -51,14 +51,14 @@ export function toolCanCutCell(lawn, tool, x, y) {
   return true;
 }
 
-export function cutQuality(tool, owned) {
+export function cutQuality(tool, owned, extraMult = 1) {
   const base = tool.baseQuality ?? 0.7;
   const sharp = Math.max(0, Math.min(100, owned.sharpness ?? 100)) / 100;
   let q = base * (0.4 + 0.6 * sharp);
   if (tool.upkeep?.oilEveryMows && (owned.mowsSinceOil || 0) >= tool.upkeep.oilEveryMows) {
     q *= 0.85;
   }
-  return Math.max(0, Math.min(1, q));
+  return Math.max(0, Math.min(1, q * extraMult));
 }
 
 export function applyUpkeep(owned, tool, cells) {
@@ -90,8 +90,8 @@ export function toolBlockedReason(tool, owned, lawn, tiles) {
   return null;
 }
 
-export function performSwath(lawn, tiles, tool, owned, targetHeight, nowHour, rules) {
-  const quality = cutQuality(tool, owned);
+export function performSwath(lawn, tiles, tool, owned, targetHeight, nowHour, rules, extraMult = 1) {
+  const quality = cutQuality(tool, owned, extraMult);
   const results = [];
   for (const t of tiles) {
     if (!toolCanCutCell(lawn, tool, t.x, t.y)) continue;

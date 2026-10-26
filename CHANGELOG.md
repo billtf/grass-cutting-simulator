@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0 — Phase 3 characters and neighbor jobs
+
+- Up to 4 characters, traits, needs, skill points, shed mirror
+- Job board with 10 neighbors and 7 job types, pay/tips/stars
+- Save schemaVersion 2 with v1 migration; export and import in Settings
+
 ## v0.3.0 — Phase 2 lawn care and weather
 
 - Moisture, health, weeds, fertilizer, seed, leaves, aeration

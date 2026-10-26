@@ -1,0 +1,82 @@
+[
+  {
+    "id": "perfectionist",
+    "name": "Perfectionist",
+    "blurb": "Cuts look cleaner. You walk a bit slower.",
+    "modifiers": [
+      { "stat": "qualityMult", "value": 1.1 },
+      { "stat": "moveSpeedMult", "value": 0.85 }
+    ]
+  },
+  {
+    "id": "speedster",
+    "name": "Speedster",
+    "blurb": "You move faster. Cuts are a little rougher.",
+    "modifiers": [
+      { "stat": "moveSpeedMult", "value": 1.2 },
+      { "stat": "qualityMult", "value": 0.95 }
+    ]
+  },
+  {
+    "id": "early_bird",
+    "name": "Early Bird",
+    "blurb": "More points before 10 AM. Energy drops faster after 6 PM.",
+    "modifiers": [
+      { "stat": "pointsMult", "value": 1.25, "when": "hour < 10" },
+      { "stat": "energyDrainMult", "value": 1.2, "when": "hour >= 18" }
+    ]
+  },
+  {
+    "id": "night_owl",
+    "name": "Night Owl",
+    "blurb": "No fungus from evening water. You start the day at 70 energy.",
+    "modifiers": [
+      { "stat": "fungusImmune", "value": 1 },
+      { "stat": "startEnergy", "value": 70 }
+    ]
+  },
+  {
+    "id": "green_thumb",
+    "name": "Green Thumb",
+    "blurb": "Seed and fertilizer work better. Weeds lower your mood.",
+    "modifiers": [
+      { "stat": "carePower", "value": 1.25 },
+      { "stat": "weedMood", "value": 1 }
+    ]
+  },
+  {
+    "id": "gearhead",
+    "name": "Gearhead",
+    "blurb": "Maintenance costs less. Hand tools tire you more.",
+    "modifiers": [
+      { "stat": "maintainCostMult", "value": 0.7 },
+      { "stat": "handEnergyMult", "value": 1.2 }
+    ]
+  },
+  {
+    "id": "penny_pincher",
+    "name": "Penny Pincher",
+    "blurb": "Shop prices are 10% lower. Bonus coins are a bit smaller.",
+    "modifiers": [
+      { "stat": "shopPriceMult", "value": 0.9 },
+      { "stat": "bonusCoinMult", "value": 0.95 }
+    ]
+  },
+  {
+    "id": "tough_cookie",
+    "name": "Tough Cookie",
+    "blurb": "Heat waves do not extra-drain energy. Mood recovers slower.",
+    "modifiers": [
+      { "stat": "heatImmune", "value": 1 },
+      { "stat": "moodRecoverMult", "value": 0.7 }
+    ]
+  },
+  {
+    "id": "chatterbox",
+    "name": "Chatterbox",
+    "blurb": "Neighbors tip more. Sometimes you pause to talk.",
+    "modifiers": [
+      { "stat": "tipMult", "value": 1.2 }
+    ]
+  }
+]

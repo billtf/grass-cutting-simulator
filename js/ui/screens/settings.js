@@ -1,5 +1,5 @@
 import { el, showOverlay, hideOverlay } from "../dom.js";
-import { clearSave } from "../../save.js";
+import { clearSave, exportSaveJson, parseImportedSave } from "../../save.js";
 
 export function createSettingsScene(game, { fromTitle }) {
   return {
@@ -21,12 +21,15 @@ export function createSettingsScene(game, { fromTitle }) {
             <button class="btn ${current === "hard" ? "primary" : ""}" data-act="hard">Hard</button>
           </div>
           <label class="field">What's new
-            <span>v${game.config.version} — tools through the gas mower, shed shop, workbench, day summary.</span>
+            <span>v${game.config.version} — crew, job board, save export/import.</span>
           </label>
           <div class="btn-col">
+            <button class="btn" data-act="export">Export save</button>
+            <button class="btn" data-act="import">Import save</button>
             <button class="btn danger" data-act="wipe">Delete save</button>
             <button class="btn" data-act="back">Back</button>
           </div>
+          <input type="file" accept="application/json" data-import class="hidden" />
         </div>
       `);
       card.addEventListener("click", (e) => {
@@ -37,6 +40,14 @@ export function createSettingsScene(game, { fromTitle }) {
           game.scenes.pop();
           game.openSettings();
         }
+        if (act === "export" && game.state) {
+          const blob = new Blob([exportSaveJson(game.state)], { type: "application/json" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "grass-friend-save.json";
+          a.click();
+        }
+        if (act === "import") card.querySelector("[data-import]").click();
         if (act === "wipe") {
           if (confirm("Delete the local save? This cannot be undone.")) {
             clearSave(game.config.saveKey);
@@ -44,6 +55,18 @@ export function createSettingsScene(game, { fromTitle }) {
             game.scenes.clear();
             game.showTitle();
           }
+        }
+      });
+      card.querySelector("[data-import]").addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const saved = parseImportedSave(text);
+          localStorage.setItem(game.config.saveKey, JSON.stringify(saved));
+          game.continueGame();
+        } catch (err) {
+          alert("Could not import that file. " + err.message);
         }
       });
       showOverlay(game.overlayEl, card);

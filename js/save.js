@@ -87,6 +87,7 @@ export function serializeState(state) {
     settings: state.settings,
     overlay: state.overlay,
     dayLog: state.dayLog || null,
+    jobs: state.jobs || null,
   };
 }
 
@@ -115,7 +116,25 @@ export function hydrateLawn(savedLawn, applyLayout) {
 }
 
 const MIGRATIONS = {
-  // Future: 1 -> 2 lives here.
+  1: (data) => ({
+    ...data,
+    schemaVersion: 2,
+    jobs: data.jobs || {
+      reputation: 3,
+      ratings: [],
+      open: [],
+      offers: [],
+      regulars: [],
+      neighborsUnlocked: ["n1", "n2", "n3"],
+      lastOfferDay: 0,
+    },
+    characters: (data.characters || []).map((c) => ({
+      ...c,
+      traits: c.traits || [],
+      needs: c.needs || { energy: 100, hydration: 100, mood: 90 },
+      skills: c.skills || { stamina: 0, precision: 0, speed: 0, botany: 0 },
+    })),
+  }),
 };
 
 export function migrate(save) {
