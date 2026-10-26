@@ -29,7 +29,7 @@ Phase 3 runs 4 weeks to absorb the holiday break; if a phase slips, Phase 4 poli
 
 ## Repo setup and dev workflow
 
-One public repo, billtf/grass-friend, served from the main branch by GitHub Pages at billtf.github.io/grass-friend; no build step, so a pushed file is live in about a minute.
+One public repo, billtf/grass-cutting-simulator, served from the main branch by GitHub Pages at billtf.github.io/grass-cutting-simulator; no build step, so a pushed file is live in about a minute.
 
 **Setup (once)**
 
@@ -67,7 +67,7 @@ The sim modules hold all game state and rules and load their numbers from the da
 
 Goal: walk around a lawn that grows, cut it with scissors, close the tab, come back, and find it where you left it. Tag `v0.1`.
 
-**Status (2026-10-26):** P0.1–P0.12 implemented. Play locally with `python3 -m http.server 8000`. GitHub Pages still needs a human to set **Settings → Pages → Deploy from a branch → `main` → `/`**. Chromebook FPS and school-filter checks wait on that URL. Cut UX (2026-10-26): click/tap/Space all cut the standing + facing cells in ~0.45s with snip VFX and a HUD tip if the patch is already short or blocked. New lawns start 4.5–6.2 in so the first cut is visible.
+**Status (2026-10-26):** P0.1–P0.12 implemented. Play locally with `python3 -m http.server 8000`. GitHub Pages is live from `main` / root at https://billtf.github.io/grass-cutting-simulator/ (first build 2026-10-26). Chromebook FPS and school-filter checks are still open. Cut UX (2026-10-26): click/tap/Space all cut the standing + facing cells in ~0.45s with snip VFX and a HUD tip if the patch is already short or blocked. New lawns start 4.5–6.2 in so the first cut is visible.
 
 - [x] **P0.1 Repo and Pages setup (1 h).** Steps in Repo setup above; green canvas live on the Chromebook.
 - [x] **P0.2 Boot and game loop (2 h).** `main.js` loads config JSON, runs a fixed 30 Hz sim tick and a requestAnimationFrame render; pauses when the tab is hidden.
