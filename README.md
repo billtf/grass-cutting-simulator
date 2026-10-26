@@ -27,7 +27,7 @@ Then open http://localhost:8000/
 | Open shed | E (stand next to the brown shed) |
 | Switch tool | Q or 1–9 |
 | Deck height | Z / X (mowers) |
-| Height overlay | H |
+| Overlays (height / moisture / health) | H |
 | Fast forward (when standing still) | F |
 | Pause | Esc or P |
 | Debug panel | Backtick (`) |

@@ -45,6 +45,10 @@ export function createLawn(width, height, rng, config, layout = "front") {
   };
   applyLayout(lawn);
   seedGrass(lawn, rng, config);
+  lawn.seedDays = new Uint8Array(n);
+  lawn.leafCover = new Uint8Array(n);
+  lawn.aerateDays = new Uint8Array(n);
+  lawn.sprayHours = new Uint8Array(n);
   return lawn;
 }
 
@@ -145,7 +149,7 @@ export function tickGrowth(lawn, config, extras = {}) {
   const maxH = config.lawn.maxHeight;
   const overgrown = config.lawn.overgrownHeight;
   const seasonMult = extras.seasonMult ?? 1;
-  const waterMultStub = extras.waterMultStub ?? 1;
+  const waterMultStub = extras.waterMultStub;
   const growthSpeed = extras.growthSpeed ?? 1;
   const sunMult = extras.sunMult ?? 1;
   let overgrownCount = 0;
@@ -163,7 +167,7 @@ export function tickGrowth(lawn, config, extras = {}) {
       seasonMult,
       sunMult,
       growthSpeed,
-      waterMultStub,
+      ...(waterMultStub != null ? { waterMultStub } : {}),
     });
     const before = lawn.heightArr[i];
     const after = clamp(before + g, minH, maxH);

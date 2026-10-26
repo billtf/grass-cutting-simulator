@@ -4,6 +4,14 @@ export function findTool(tools, id) {
   return tools.find((t) => t.id === id) || tools[0];
 }
 
+export function findAnyTool(cutTools, careTools, id) {
+  return (
+    cutTools.find((t) => t.id === id) ||
+    careTools.find((t) => t.id === id) ||
+    cutTools[0]
+  );
+}
+
 export function ownedIds(inventory) {
   return inventory.tools.map((t) => t.id);
 }

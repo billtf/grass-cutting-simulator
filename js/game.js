@@ -9,6 +9,7 @@ import { mountHud } from "./ui/hud.js";
 import { createTitleScene } from "./ui/screens/title.js";
 import { createLawnScene } from "./ui/screens/lawn.js";
 import { makeOwnedTool } from "./sim/shop.js";
+import { weatherForDay } from "./sim/weather.js";
 import { createPauseScene } from "./ui/screens/pause.js";
 import { createSettingsScene } from "./ui/screens/settings.js";
 import {
@@ -20,12 +21,16 @@ import {
 import { createDebug } from "./debug.js";
 
 export class Game {
-  constructor(config, tools, difficulty, shop, tips, els) {
+  constructor(config, tools, difficulty, shop, tips, care, weather, els) {
     this.config = config;
     this.tools = tools;
     this.difficultyTable = difficulty;
     this.shop = shop;
     this.tips = tips;
+    this.care = care;
+    this.weatherTable = weather;
+    this.careTools = care.tools || [];
+    this.allTools = [...tools, ...(care.tools || [])];
     this.canvas = els.canvas;
     this.ctx = els.canvas.getContext("2d");
     this.hudEl = els.hud;
@@ -150,6 +155,8 @@ export class Game {
       this.config,
       "front"
     );
+    const today = weatherForDay(rng, 1, rules.forecastAccuracy, this.weatherTable);
+    const tomorrow = weatherForDay(rng, 2, rules.forecastAccuracy, this.weatherTable);
     return {
       schemaVersion: this.config.schemaVersion,
       createdAt: new Date().toISOString(),
@@ -159,9 +166,10 @@ export class Game {
       difficultyRules: rules,
       clock: createClock(this.config.clock.hoursPerDay, this.config.clock.startHour),
       game: {
-        season: "spring",
-        weatherToday: "sunny",
-        weatherTomorrow: "sunny",
+        season: today.season,
+        weatherToday: today.actual,
+        weatherTomorrow: tomorrow.forecast,
+        weatherTomorrowActual: tomorrow.actual,
         dayLengthMinutes: rules.dayLengthMinutes,
         zonesOwned: ["front"],
       },
@@ -202,11 +210,17 @@ export class Game {
         },
       ],
       inventory: {
-        tools: [makeOwnedTool(this.tools.find((t) => t.id === "scissors") || { id: "scissors", needsFuel: false })],
+        tools: [
+          makeOwnedTool(this.tools.find((t) => t.id === "scissors") || { id: "scissors", needsFuel: false }),
+          makeOwnedTool({ id: "watering_can" }),
+          makeOwnedTool({ id: "hand_pull" }),
+        ],
         equippedTool: "scissors",
         deckHeight: 3,
-        supplies: { seed: 0, fertilizer: 0, weedSpray: 0, fuel: 0, line: 0 },
+        supplies: { seed: 3, fertilizer: 1, weedSpray: 1, fuel: 0, line: 0 },
       },
+      almanac: [],
+      care: { sprinklers: [], timed: false },
       settings: { volume: 0.7, colorblind: false, reducedMotion: false },
       dayLog: {
         cuts: 0,
@@ -242,6 +256,7 @@ export class Game {
         season: saved.game.season || "spring",
         weatherToday: saved.game.weatherToday || "sunny",
         weatherTomorrow: saved.game.weatherTomorrow || "sunny",
+        weatherTomorrowActual: saved.game.weatherTomorrowActual || saved.game.weatherTomorrow || "sunny",
         dayLengthMinutes: saved.game.dayLengthMinutes || rules.dayLengthMinutes,
         zonesOwned: saved.lawn.zonesOwned || ["front"],
       },
@@ -267,6 +282,8 @@ export class Game {
       characters: saved.characters || this.freshState(rules.id).characters,
       inventory: normalizeInventory(saved.inventory, this.tools),
       settings: saved.settings || { volume: 0.7, colorblind: false, reducedMotion: false },
+      almanac: saved.almanac || [],
+      care: saved.care || { sprinklers: [], timed: false },
       dayLog: saved.dayLog || {
         cuts: 0,
         clean: 0,

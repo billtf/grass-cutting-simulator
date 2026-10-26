@@ -110,19 +110,21 @@ Goal: a new player earns coins and climbs from scissors to the gas push mower in
 
 Goal: the lawn is alive; ignoring water, weeds, or the forecast costs points, and the game explains why. Tag `v0.3`.
 
-- [ ] **P2.1 Moisture model (2 h).** Hourly drying by weather; growth and health tied to the ideal 40 to 70 band; browning and fungus.
-- [ ] **P2.2 Watering tools (3 h).** Can, hose, oscillating sprinkler (placed, area of effect), timed sprinkler; time of day efficiency; water bill.
-- [ ] **P2.3 Health model (2 h).** Health gains and losses from water, cuts, weeds, fertilizer burn; dead cells at 0.
-- [ ] **P2.4 Weeds (2.5 h).** Spawn and spread rules; hand pull, weeder, spot spray with the no rain rule.
-- [ ] **P2.5 Fertilizer (1.5 h).** Spreaders, decay, weekly burn limit.
-- [ ] **P2.6 Seeding (1.5 h).** Reseed dead cells; 3 day recovery that needs moisture.
-- [ ] **P2.7 Weather and forecast (2.5 h).** Daily roll using the save seed; tomorrow shown in the HUD; rain, heat wave, storm effects; forecast accuracy by difficulty.
-- [ ] **P2.8 Seasons (2 h).** 14 day seasons, growth multipliers, color shift, winter prep tasks (leaves, aeration).
-- [ ] **P2.9 Leaves and aeration (1.5 h).** Rake and blower; leaf cover blocks sun; aerator boosts water uptake.
-- [ ] **P2.10 HOA inspections and warnings (2 h).** Weekly inspection, warnings, fine after the limit, notice popup.
-- [ ] **P2.11 Moisture and health overlays (1 h).** H cycles height, moisture, health maps.
-- [ ] **P2.12 Tips system (1.5 h).** Context tips at a 6th grade reading level the first time each rule bites; logged to the almanac.
-- [ ] **P2.13 Balance pass (1 h).** Normal mode lawn survives with about half of each in game day spent on care.
+**Status (2026-10-26):** P2.1–P2.13 implemented. Skipping water browns the lawn; the day summary says why. H cycles height / moisture / health. Pause → Almanac stores first-time tips.
+
+- [x] **P2.1 Moisture model (2 h).** Hourly drying by weather; growth and health tied to the ideal 40 to 70 band; browning and fungus.
+- [x] **P2.2 Watering tools (3 h).** Can, hose, oscillating sprinkler (placed, area of effect), timed sprinkler; time of day efficiency; water bill.
+- [x] **P2.3 Health model (2 h).** Health gains and losses from water, cuts, weeds, fertilizer burn; dead cells at 0.
+- [x] **P2.4 Weeds (2.5 h).** Spawn and spread rules; hand pull, weeder, spot spray with the no rain rule.
+- [x] **P2.5 Fertilizer (1.5 h).** Spreaders, decay, weekly burn limit.
+- [x] **P2.6 Seeding (1.5 h).** Reseed dead cells; 3 day recovery that needs moisture.
+- [x] **P2.7 Weather and forecast (2.5 h).** Daily roll using the save seed; tomorrow shown in the HUD; rain, heat wave, storm effects; forecast accuracy by difficulty.
+- [x] **P2.8 Seasons (2 h).** 14 day seasons, growth multipliers, color shift, winter prep tasks (leaves, aeration).
+- [x] **P2.9 Leaves and aeration (1.5 h).** Rake and blower; leaf cover blocks sun; aerator boosts water uptake.
+- [x] **P2.10 HOA inspections and warnings (2 h).** Weekly inspection, warnings, fine after the limit, notice popup.
+- [x] **P2.11 Moisture and health overlays (1 h).** H cycles height, moisture, health maps.
+- [x] **P2.12 Tips system (1.5 h).** Context tips at a 6th grade reading level the first time each rule bites; logged to the almanac.
+- [x] **P2.13 Balance pass (1 h).** Normal mode lawn survives with about half of each in game day spent on care.
 
 **Done when:** skipping water for 3 in game days browns the lawn and the day summary says why; a full spring to winter run works.
 

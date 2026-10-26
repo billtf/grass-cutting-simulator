@@ -1,0 +1,178 @@
+{
+  "waterBillPerCell": 0.05,
+  "dryBrownHealth": 2,
+  "fungusHealth": 3,
+  "idealHealthGain": 1,
+  "weedSpreadHealth": 30,
+  "weedSpreadHeight": 5,
+  "fertilizerBurn": 20,
+  "fertilizerBurnAt": 85,
+  "seedDays": 3,
+  "leafKillDays": 3,
+  "aerateDays": 7,
+  "spraySafeHours": 24,
+  "tools": [
+    {
+      "id": "watering_can",
+      "name": "Watering can",
+      "role": "water",
+      "unlockLevel": 1,
+      "cost": 0,
+      "amount": 28,
+      "radius": 0,
+      "energy": 0.4
+    },
+    {
+      "id": "hose",
+      "name": "Hose",
+      "role": "water",
+      "unlockLevel": 3,
+      "cost": 200,
+      "amount": 22,
+      "radius": 1,
+      "energy": 0.2
+    },
+    {
+      "id": "oscillating_sprinkler",
+      "name": "Oscillating sprinkler",
+      "role": "water",
+      "unlockLevel": 6,
+      "cost": 600,
+      "amount": 16,
+      "place": true,
+      "radius": 3,
+      "energy": 0.1
+    },
+    {
+      "id": "timed_sprinkler",
+      "name": "Timed sprinkler system",
+      "role": "water",
+      "unlockLevel": 12,
+      "cost": 2500,
+      "amount": 10,
+      "auto": true,
+      "radius": 6,
+      "energy": 0
+    },
+    {
+      "id": "hand_pull",
+      "name": "Hand pull",
+      "role": "weed",
+      "unlockLevel": 1,
+      "cost": 0,
+      "amount": 1,
+      "radius": 0,
+      "energy": 1.2
+    },
+    {
+      "id": "weeder",
+      "name": "Weeder",
+      "role": "weed",
+      "unlockLevel": 5,
+      "cost": 180,
+      "amount": 2,
+      "radius": 0,
+      "energy": 0.7
+    },
+    {
+      "id": "spot_spray",
+      "name": "Spot spray",
+      "role": "spray",
+      "unlockLevel": 7,
+      "cost": 220,
+      "amount": 3,
+      "radius": 1,
+      "energy": 0.3
+    },
+    {
+      "id": "hand_fertilizer",
+      "name": "Hand fertilizer",
+      "role": "fertilizer",
+      "unlockLevel": 3,
+      "cost": 80,
+      "amount": 25,
+      "radius": 0,
+      "energy": 0.5
+    },
+    {
+      "id": "drop_spreader",
+      "name": "Drop spreader",
+      "role": "fertilizer",
+      "unlockLevel": 8,
+      "cost": 450,
+      "amount": 20,
+      "radius": 1,
+      "energy": 0.3
+    },
+    {
+      "id": "broadcast_spreader",
+      "name": "Broadcast spreader",
+      "role": "fertilizer",
+      "unlockLevel": 11,
+      "cost": 900,
+      "amount": 18,
+      "radius": 2,
+      "energy": 0.2
+    },
+    {
+      "id": "hand_seed",
+      "name": "Hand seed",
+      "role": "seed",
+      "unlockLevel": 2,
+      "cost": 60,
+      "amount": 1,
+      "radius": 0,
+      "energy": 0.6
+    },
+    {
+      "id": "seed_spreader",
+      "name": "Seed spreader",
+      "role": "seed",
+      "unlockLevel": 9,
+      "cost": 400,
+      "amount": 1,
+      "radius": 1,
+      "energy": 0.3
+    },
+    {
+      "id": "rake",
+      "name": "Rake",
+      "role": "leaves",
+      "unlockLevel": 1,
+      "cost": 40,
+      "amount": 1,
+      "radius": 0,
+      "energy": 0.8
+    },
+    {
+      "id": "leaf_blower",
+      "name": "Leaf blower",
+      "role": "leaves",
+      "unlockLevel": 10,
+      "cost": 700,
+      "amount": 1,
+      "radius": 2,
+      "energy": 0.2
+    },
+    {
+      "id": "spike_shoes",
+      "name": "Spike shoes",
+      "role": "aerate",
+      "unlockLevel": 4,
+      "cost": 120,
+      "amount": 7,
+      "radius": 0,
+      "energy": 0.5
+    },
+    {
+      "id": "core_aerator",
+      "name": "Core aerator",
+      "role": "aerate",
+      "unlockLevel": 13,
+      "cost": 1200,
+      "amount": 7,
+      "radius": 2,
+      "energy": 0.4
+    }
+  ]
+}

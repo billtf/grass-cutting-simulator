@@ -1,6 +1,6 @@
 {
   "name": "Grass Friend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "schemaVersion": 1,
   "saveKey": "grassfriend.save.v1",
   "tileSize": 16,
@@ -35,7 +35,13 @@
     "cleanCut": 2,
     "roughCut": 1,
     "overgrownPerHour": 1,
-    "scalped": 10
+    "scalped": 10,
+    "inspectionPass": 300,
+    "inspectionFail": 300,
+    "hoaFine": 500,
+    "deadPatch": 25,
+    "weedCleared": 5,
+    "morningWater": 20
   },
   "cut": {
     "scissorsSeconds": 2,
