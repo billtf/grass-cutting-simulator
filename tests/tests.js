@@ -21,6 +21,19 @@ import { waterEfficiency, applyWater } from "../js/sim/care.js";
 import { weatherForDay } from "../js/sim/weather.js";
 import { jobPay } from "../js/sim/jobs.js";
 import { traitValue } from "../js/sim/traits.js";
+import { unlockTip, hasTip, TIP_TEXT } from "../js/sim/tips.js";
+import {
+  TUTORIAL_STEPS,
+  TUTORIAL_DONE,
+  skipTutorial,
+  nextTutorialStep,
+  noteTutorialAction,
+  currentTutorialStep,
+  isTutorialDone,
+  resumeTutorialStep,
+  seedFirstDayHazards,
+  nearbyHazards,
+} from "../js/sim/tutorial.js";
 
 const results = document.getElementById("results");
 const summary = document.getElementById("summary");
@@ -303,6 +316,39 @@ for (let i = 0; i < restored.heightArr.length; i++) {
 }
 assert("Save round trip keeps lawn heights", match, `cells=${restored.heightArr.length}`);
 assert("v1 save migrates to schemaVersion 2", again.schemaVersion === 2, String(again.schemaVersion));
+
+assert("Guided day has move, cut, brown, water, weeds, shed", TUTORIAL_STEPS.length >= 6 && TUTORIAL_STEPS.some((s) => s.id === "brown") && TUTORIAL_STEPS.some((s) => s.id === "weeds"), TUTORIAL_STEPS.map((s) => s.id).join(","));
+
+const guide = { tutorialStep: 0, almanac: [], clock: { day: 1 } };
+assert("Tutorial starts on Walk around", currentTutorialStep(guide)?.id === "move", currentTutorialStep(guide)?.id);
+noteTutorialAction(guide, "moved");
+assert("Walking advances the guide", currentTutorialStep(guide)?.id === "cut", currentTutorialStep(guide)?.id);
+noteTutorialAction(guide, "moved");
+assert("Wrong action does not skip a step", currentTutorialStep(guide)?.id === "cut", currentTutorialStep(guide)?.id);
+skipTutorial(guide);
+assert("Skip ends the guide", isTutorialDone(guide) && guide.tutorialStep === TUTORIAL_DONE, String(guide.tutorialStep));
+
+const stepped = { tutorialStep: 0 };
+nextTutorialStep(stepped);
+nextTutorialStep(stepped);
+assert("Next button moves to brown patches", currentTutorialStep(stepped)?.id === "brown", currentTutorialStep(stepped)?.id);
+
+assert("Old day-1 save resumes the guide", resumeTutorialStep({ game: { day: 1 } }) === 0, String(resumeTutorialStep({ game: { day: 1 } })));
+assert("Old later save does not restart the guide", resumeTutorialStep({ game: { day: 8 } }) === TUTORIAL_DONE, String(resumeTutorialStep({ game: { day: 8 } })));
+assert("Saved step 3 resumes at 3", resumeTutorialStep({ tutorialStep: 3, game: { day: 1 } }) === 3, "");
+
+const tipState = { almanac: [], clock: { day: 1 } };
+const firstBrown = unlockTip(tipState, "brown");
+const secondBrown = unlockTip(tipState, "brown");
+assert("Brown tip names thirsty grass and watering can", !!firstBrown && firstBrown.includes("watering can") && firstBrown.includes("Brown"), firstBrown);
+assert("Tips log once to the Almanac", secondBrown === null && hasTip(tipState, "brown") && tipState.almanac.length === 1, JSON.stringify(tipState.almanac));
+assert("Weed tip names yellow puffs", TIP_TEXT.weeds.includes("yellow puffs") && TIP_TEXT.weeds.includes("weeds"), TIP_TEXT.weeds);
+
+const hazardLawn = createLawn(32, 24, createRng(9), config);
+const seeded = seedFirstDayHazards(hazardLawn, { x: 16, y: 7 });
+const near = nearbyHazards(hazardLawn, { x: 16, y: 7 }, 6);
+assert("Day 1 lawn has brown patches and weeds to point at", seeded.brownCount >= 3 && seeded.weedCount >= 3, JSON.stringify(seeded));
+assert("Nearby scan finds brown and weeds", !!near.brown && !!near.weed, JSON.stringify(near));
 
 summary.textContent = `${passed} passed, ${failed} failed, ${skipped} skipped`;
 document.title = failed ? `FAIL ${failed}` : `PASS ${passed}`;

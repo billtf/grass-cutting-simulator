@@ -21,6 +21,15 @@ export function mountHud(root) {
       <div class="hud-chip" id="hud-hint">WASD move · click/Space cut · Q tool · E shed · H overlay</div>
       <div class="hud-chip hidden" id="hud-toast"></div>
     </div>
+    <div id="hud-coach" class="hud-coach hidden">
+      <div class="hud-coach-kicker" id="hud-coach-kicker">Day 1 guide</div>
+      <h3 id="hud-coach-title">Walk around</h3>
+      <p id="hud-coach-text"></p>
+      <div class="hud-coach-btns">
+        <button type="button" class="btn primary" id="hud-coach-next">Next</button>
+        <button type="button" class="btn" id="hud-coach-skip">Skip guide</button>
+      </div>
+    </div>
   `;
   return {
     clock: root.querySelector("#hud-clock"),
@@ -32,6 +41,12 @@ export function mountHud(root) {
     energy: root.querySelector("#hud-energy"),
     hint: root.querySelector("#hud-hint"),
     toast: root.querySelector("#hud-toast"),
+    coach: root.querySelector("#hud-coach"),
+    coachKicker: root.querySelector("#hud-coach-kicker"),
+    coachTitle: root.querySelector("#hud-coach-title"),
+    coachText: root.querySelector("#hud-coach-text"),
+    coachNext: root.querySelector("#hud-coach-next"),
+    coachSkip: root.querySelector("#hud-coach-skip"),
   };
 }
 
@@ -66,6 +81,28 @@ export function showToast(nodes, text, ms = 2600) {
   showToast._t = setTimeout(() => {
     nodes.toast.classList.add("hidden");
   }, ms);
+}
+
+export function showCoach(nodes, step, index, total) {
+  if (!nodes?.coach) return;
+  if (!step) {
+    nodes.coach.classList.add("hidden");
+    return;
+  }
+  nodes.coach.classList.remove("hidden");
+  nodes.coachKicker.textContent = `Day 1 guide · ${index + 1} of ${total}`;
+  nodes.coachTitle.textContent = step.title;
+  nodes.coachText.textContent = step.text;
+}
+
+export function hideCoach(nodes) {
+  if (nodes?.coach) nodes.coach.classList.add("hidden");
+}
+
+export function bindCoach(nodes, handlers) {
+  if (!nodes?.coachNext) return;
+  nodes.coachNext.onclick = handlers.onNext;
+  nodes.coachSkip.onclick = handlers.onSkip;
 }
 
 function labelWeather(id) {

@@ -26,7 +26,7 @@ export function createSettingsScene(game, { fromTitle }) {
           <label class="trait"><input type="checkbox" data-cb ${game.state?.settings.colorblind ? "checked" : ""}/> Colorblind overlay colors</label>
           <label class="trait"><input type="checkbox" data-motion ${game.state?.settings.reducedMotion ? "checked" : ""}/> Reduced motion</label>
           <label class="field">What's new
-            <span>v${game.config.version} — click/tap Cut works; pixel lawn, house, shed, and kid.</span>
+            <span>v${game.config.version} — skippable day-1 guide names brown grass and yellow weeds.</span>
           </label>
           <div class="btn-col">
             <button class="btn" data-act="export">Export save</button>

@@ -77,6 +77,7 @@ export function serializeState(state) {
       },
     },
     almanac: state.almanac || [],
+    tutorialStep: state.tutorialStep ?? 0,
     care: state.care || { sprinklers: [], timed: false },
     player: {
       x: state.player.x,

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2 — First-day guide
+
+- Skippable day-1 coach: walk, cut, brown patches, when to water, yellow weeds, how to pull, shed
+- First time you see brown grass or yellow puffs, a HUD tip names them and logs to the Almanac
+- New lawns spawn a few thirsty patches and weeds so the guide has something to point at
+
 ## v1.0.1 — Cut UX and pixel art
 
 - Click, tap, or hold Space to cut standing + facing grass in about half a second
