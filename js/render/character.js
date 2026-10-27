@@ -1,45 +1,83 @@
 /** Pixel kid + held tool. Look fields pick palettes; no external sprites. */
 
-const SKIN = ["#f6d7b0", "#e0ac69", "#c68642", "#8d5524", "#5c3310", "#ffdbac"];
-const HAIR = ["#1b1b1b", "#3e2723", "#6d4c41", "#d7ccc8", "#f9a825", "#6a1b9a", "#1565c0", "#c62828"];
-const OUTFIT = ["#1565c0", "#2e7d32", "#f9a825", "#6a1b9a", "#c62828", "#00838f", "#ef6c00", "#37474f"];
+export const SKIN = ["#f6d7b0", "#e0ac69", "#c68642", "#8d5524", "#5c3310", "#ffdbac"];
+export const HAIR = ["#1b1b1b", "#3e2723", "#6d4c41", "#d7ccc8", "#f9a825", "#6a1b9a", "#1565c0", "#c62828"];
+export const OUTFIT = ["#1565c0", "#2e7d32", "#f9a825", "#6a1b9a", "#c62828", "#00838f", "#ef6c00", "#37474f"];
+export const EYES = ["#1b1b1b", "#1565c0", "#2e7d32", "#6d4c41", "#c62828", "#f9a825"];
+export const SHOES = ["#5d4037", "#212121", "#1565c0", "#c62828", "#f9a825", "#eceff1"];
+export const HATS = ["#33691e", "#1565c0", "#c62828", "#f9a825", "#5d4037", "#eceff1"];
+
+export const PREVIEW_FACING = "down";
+
+export function lookColors(look = {}) {
+  const skinI = Math.abs(look.skin | 0) % SKIN.length;
+  const hairI = Math.abs(look.hairColor | 0) % HAIR.length;
+  const fitI = Math.abs(look.outfit | 0) % OUTFIT.length;
+  const eyeI = Math.abs(look.eyes | 0) % EYES.length;
+  const shoeI = Math.abs(look.shoes | 0) % SHOES.length;
+  const hatOn = (look.hat | 0) > 0;
+  const hatI = hatOn ? Math.abs((look.hat | 0) - 1) % HATS.length : 0;
+  return {
+    skin: SKIN[skinI],
+    hair: HAIR[hairI],
+    outfit: OUTFIT[fitI],
+    eyes: EYES[eyeI],
+    shoes: SHOES[shoeI],
+    hat: hatOn ? HATS[hatI] : null,
+    body: Math.abs(look.body | 0) % 4,
+    hairStyle: Math.abs(look.hair | 0) % 8,
+  };
+}
 
 export function drawCharacter(ctx, character, sx, sy, facing, toolId, cutting) {
-  const look = character.look || {};
-  const skin = SKIN[look.skin % SKIN.length];
-  const hair = HAIR[look.hairColor % HAIR.length];
-  const fit = OUTFIT[look.outfit % OUTFIT.length];
-  const ox = Math.round(sx) - 6;
-  const oy = Math.round(sy) - 10;
+  const pal = lookColors(character?.look);
+  const wide = pal.body >= 2;
+  const tall = pal.body === 1 || pal.body === 3;
+  const ox = Math.round(sx) - (wide ? 7 : 6);
+  const oy = Math.round(sy) - (tall ? 11 : 10);
+  const torsoW = wide ? 11 : 9;
 
   ctx.fillStyle = "rgba(0,0,0,0.28)";
-  ctx.fillRect(ox + 2, oy + 18, 9, 2);
+  ctx.fillRect(ox + 2, oy + 18, torsoW, 2);
 
   ctx.fillStyle = "#37474f";
   ctx.fillRect(ox + 3, oy + 13, 3, 5);
-  ctx.fillRect(ox + 7, oy + 13, 3, 5);
-  ctx.fillStyle = look.shoes ? "#212121" : "#5d4037";
+  ctx.fillRect(ox + (wide ? 8 : 7), oy + 13, 3, 5);
+  ctx.fillStyle = pal.shoes;
   ctx.fillRect(ox + 2, oy + 17, 4, 2);
-  ctx.fillRect(ox + 7, oy + 17, 4, 2);
+  ctx.fillRect(ox + (wide ? 8 : 7), oy + 17, 4, 2);
 
-  ctx.fillStyle = fit;
-  ctx.fillRect(ox + 2, oy + 8, 9, 6);
+  ctx.fillStyle = pal.outfit;
+  ctx.fillRect(ox + 2, oy + 8, torsoW, 6);
   ctx.fillStyle = "#fffde7";
   ctx.fillRect(ox + 4, oy + 9, 2, 2);
 
-  ctx.fillStyle = skin;
+  ctx.fillStyle = pal.skin;
   ctx.fillRect(ox + 3, oy + 3, 7, 6);
-  ctx.fillStyle = hair;
-  ctx.fillRect(ox + 2, oy + 1, 9, 4);
-  if (look.hair === 2) ctx.fillRect(ox + 1, oy + 4, 2, 4);
-  if (look.hat) {
-    ctx.fillStyle = "#33691e";
+  ctx.fillStyle = pal.hair;
+  if (pal.hairStyle === 0) ctx.fillRect(ox + 3, oy + 1, 7, 3);
+  else ctx.fillRect(ox + 2, oy + 1, 9, 4);
+  if (pal.hairStyle === 2) ctx.fillRect(ox + 1, oy + 4, 2, 4);
+  if (pal.hairStyle === 3) ctx.fillRect(ox + 3, oy + 0, 7, 2);
+  if (pal.hairStyle === 4) ctx.fillRect(ox + 3, oy + 4, 7, 2);
+  if (pal.hairStyle === 5) ctx.fillRect(ox + 8, oy + 0, 4, 4);
+  if (pal.hairStyle === 6) {
+    ctx.fillRect(ox + 1, oy + 4, 2, 5);
+    ctx.fillRect(ox + 10, oy + 4, 2, 5);
+  }
+  if (pal.hairStyle === 7) {
+    ctx.fillRect(ox + 3, oy + 0, 2, 2);
+    ctx.fillRect(ox + 8, oy + 0, 2, 2);
+  }
+  if (pal.hat) {
+    ctx.fillStyle = pal.hat;
     ctx.fillRect(ox + 1, oy + 0, 11, 3);
     ctx.fillStyle = "#1b5e20";
     ctx.fillRect(ox + 0, oy + 2, 13, 2);
   }
 
-  ctx.fillStyle = "#1b1b1b";
+  const eye = pal.eyes;
+  ctx.fillStyle = eye;
   if (facing === "up") {
     ctx.fillRect(ox + 4, oy + 4, 2, 1);
     ctx.fillRect(ox + 7, oy + 4, 2, 1);
@@ -59,7 +97,7 @@ export function drawCharacter(ctx, character, sx, sy, facing, toolId, cutting) {
     ctx.fillRect(ox + 7, oy + 6, 1, 1);
   }
 
-  drawHeldTool(ctx, sx, sy, facing, toolId, cutting);
+  if (toolId !== "none") drawHeldTool(ctx, sx, sy, facing, toolId, cutting);
 }
 
 export function drawHeldTool(ctx, sx, sy, facing, toolId, cutting) {
@@ -101,4 +139,20 @@ export function drawHeldTool(ctx, sx, sy, facing, toolId, cutting) {
   ctx.fillRect(ox + (facing === "left" ? -8 : 5), oy + 2, 6, 3);
   ctx.fillStyle = "#37474f";
   ctx.fillRect(ox + (facing === "left" ? -9 : 4), oy + 1, 8, 2);
+}
+
+/** Same drawCharacter path as the lawn, on a small canvas. Facing down. */
+export function paintCharacterPreview(canvas, character, facing = PREVIEW_FACING) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.fillStyle = "#5a8f32";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#3d6b2a";
+  for (let x = 1; x < w; x += 3) ctx.fillRect(x, h - 10, 1, 8);
+  const sx = Math.floor(w / 2);
+  const sy = Math.floor(h / 2) + 4;
+  drawCharacter(ctx, character, sx, sy, facing, "none", false);
 }

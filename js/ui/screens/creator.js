@@ -1,5 +1,6 @@
 import { el, showOverlay, hideOverlay } from "../dom.js";
-import { CATCHPHRASES, LOOK_COUNTS, LOOK_FIELDS, createCharacter } from "../../entities/characters.js";
+import { CATCHPHRASES, createCharacter } from "../../entities/characters.js";
+import { bindLookEditor, lookEditorHtml } from "../lookEditor.js";
 
 export function createCreatorScene(game, { character, onSave }) {
   const draft = JSON.parse(JSON.stringify(character));
@@ -24,11 +25,6 @@ export function createCreatorScene(game, { character, onSave }) {
         return `<label class="trait ${on ? "on" : ""}"><input type="checkbox" data-trait="${t.id}" ${on ? "checked" : ""}/> <strong>${t.name}</strong> — ${t.blurb}</label>`;
       })
       .join("");
-    const looks = LOOK_FIELDS.map((f) => {
-      return `<label class="field">${f}
-        <input type="range" min="0" max="${LOOK_COUNTS[f] - 1}" value="${draft.look[f] || 0}" data-look="${f}" />
-      </label>`;
-    }).join("");
     const phrases = CATCHPHRASES.map(
       (p) => `<option ${draft.catchphrase === p ? "selected" : ""}>${p}</option>`
     ).join("");
@@ -38,7 +34,7 @@ export function createCreatorScene(game, { character, onSave }) {
         <label class="field">Name (12 letters)
           <input type="text" maxlength="12" data-name value="${draft.name || ""}" />
         </label>
-        <div class="look-grid">${looks}</div>
+        ${lookEditorHtml()}
         <p class="fine">Pick 2 traits. They change how you mow, not just how you look.</p>
         <div class="trait-list">${traits}</div>
         <label class="field">Catchphrase
@@ -53,11 +49,7 @@ export function createCreatorScene(game, { character, onSave }) {
     card.querySelector("[data-name]").addEventListener("input", (e) => {
       draft.name = e.target.value.slice(0, 12);
     });
-    card.querySelectorAll("[data-look]").forEach((input) => {
-      input.addEventListener("input", () => {
-        draft.look[input.dataset.look] = Number(input.value);
-      });
-    });
+    bindLookEditor(card, draft);
     card.querySelectorAll("[data-trait]").forEach((box) => {
       box.addEventListener("change", () => {
         const id = box.dataset.trait;

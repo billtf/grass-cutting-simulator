@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.3 — Live look preview
+
+- Settings and the character creator show a live kid preview drawn with the same `drawCharacter` path as the lawn
+- Hair, skin, shirt, pants/body, eyes, hat, shoes, and hair color update the preview as you drag — no Apply needed
+- Preview stays sticky so Chromebook/touch sliders do not cover it
+
 ## v1.0.2 — First-day guide
 
 - Skippable day-1 coach: walk, cut, brown patches, when to water, yellow weeds, how to pull, shed

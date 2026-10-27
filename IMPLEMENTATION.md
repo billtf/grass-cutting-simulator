@@ -137,8 +137,8 @@ Goal: players build and restyle their own crew, and earn by mowing for neighbors
 **Characters (16 h)**
 
 - [x] **P3.1 Character data (1 h).** Character object per the spec data model; up to 4 per save; `traits.json`.
-- [x] **P3.2 Sprite composer (4 h).** Layered sprites (body, skin, hair, eyes, outfit, hat, shoes) drawn to one cached canvas per character; 4 walk directions.
-- [x] **P3.3 Character creator (3 h).** Name entry (12 characters), look pickers with live preview, pick 2 traits, catchphrase.
+- [x] **P3.2 Sprite composer (4 h).** Layered sprites (body, skin, hair, eyes, outfit, hat, shoes) drawn through `drawCharacter` / `lookColors` (4 walk directions). Settings and the creator reuse that path via `paintCharacterPreview`.
+- [x] **P3.3 Character creator (3 h).** Name entry (12 characters), look pickers with a live `drawCharacter` preview, pick 2 traits, catchphrase. The same look editor is on Settings for the active character; sliders update the preview immediately and persist on Back / existing autosave.
 - [x] **P3.4 Profile manager (2 h).** Create, rename, change look, swap traits once per season, duplicate, delete with confirm, set active, stats view.
 - [x] **P3.5 Shed mirror (0.5 h).** Opens the look editor for the active character.
 - [x] **P3.6 Trait modifiers (2 h).** Modifier engine reads `traits.json` (stat, value, when) and applies to speed, quality, energy, prices.
@@ -185,7 +185,7 @@ Goal: a full year of play with no dead ends, real art, sound, and touch support.
 - [x] **P4.11 Sound (2 h).** Mower loops by tier, snip, water, rain, UI clicks, music toggle.
 - [x] **P4.12 Touch controls (2 h).** Joystick on coarse pointers; Cut / E / Q always visible so Chromebook trackpad clicks work. Canvas pointer also binds Cut.
 - [x] **P4.13 Almanac and guided first day (2 h).** Skippable HUD coach walks move → cut → brown patches → morning water → yellow weeds → Hand pull → shed. Skip writes the care tips to the Almanac. Continue with an unfinished guide resumes; old day-1 saves restart the guide, later days do not. New lawns spawn a few thirsty patches and weeds so day 1 has something to point at.
-- [x] **P4.14 Accessibility settings (1 h).** Colorblind palette for overlays, reduced motion, volume.
+- [x] **P4.14 Accessibility settings (1 h).** Colorblind palette for overlays, reduced motion, volume. Settings also hosts live player-look sliders with a sticky in-world sprite preview (P3.3 polish).
 - [x] **P4.15 Final balance pass (1 h).** Full year on Normal; check that each lawn upgrade needs the next tool tier.
 
 **Done when:** a full 4 season year plays on Normal without getting stuck, at 60 fps on the biggest lawn on the Chromebook.
@@ -206,6 +206,7 @@ Testing has three layers: sim rule checks in the browser, a fixed Chromebook che
 | Traits | Speedster moves 20% faster; Penny Pincher prices 10% lower |
 | Save round trip | Save, load, compare every field; v1 save migrates to v2 |
 | Seeded weather | Same seed gives the same 30 day forecast |
+| Look preview | `paintCharacterPreview` draws skin pixels; each look field changes the canvas; sliders update without Apply |
 
 **2. Chromebook checklist (end of each phase)**
 
