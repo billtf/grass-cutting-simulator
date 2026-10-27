@@ -1,6 +1,6 @@
 {
   "name": "Grass Friend",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "schemaVersion": 1,
   "saveKey": "grassfriend.save.v1",
   "tileSize": 16,

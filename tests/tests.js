@@ -34,6 +34,9 @@ import {
   seedFirstDayHazards,
   nearbyHazards,
 } from "../js/sim/tutorial.js";
+import { LOOK_COUNTS, LOOK_FIELDS, defaultLook } from "../js/entities/characters.js";
+import { lookColors, paintCharacterPreview } from "../js/render/character.js";
+import { LOOK_LABELS, bindLookEditor, lookEditorHtml } from "../js/ui/lookEditor.js";
 
 const results = document.getElementById("results");
 const summary = document.getElementById("summary");
@@ -349,6 +352,75 @@ const seeded = seedFirstDayHazards(hazardLawn, { x: 16, y: 7 });
 const near = nearbyHazards(hazardLawn, { x: 16, y: 7 }, 6);
 assert("Day 1 lawn has brown patches and weeds to point at", seeded.brownCount >= 3 && seeded.weedCount >= 3, JSON.stringify(seeded));
 assert("Nearby scan finds brown and weeds", !!near.brown && !!near.weed, JSON.stringify(near));
+
+function canvasPixels(canvas) {
+  return canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+}
+
+function pixelsDiffer(a, b) {
+  if (a.length !== b.length) return true;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return true;
+  return false;
+}
+
+function paintLook(look) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 48;
+  canvas.height = 56;
+  paintCharacterPreview(canvas, { look });
+  return canvas;
+}
+
+const previewCanvas = paintLook(defaultLook());
+const previewPx = canvasPixels(previewCanvas);
+const skinHex = lookColors(defaultLook()).skin;
+const sr = parseInt(skinHex.slice(1, 3), 16);
+const sg = parseInt(skinHex.slice(3, 5), 16);
+const sb = parseInt(skinHex.slice(5, 7), 16);
+let foundSkin = false;
+for (let i = 0; i < previewPx.length; i += 4) {
+  if (previewPx[i] === sr && previewPx[i + 1] === sg && previewPx[i + 2] === sb) foundSkin = true;
+}
+assert("Look preview uses drawCharacter skin pixels", foundSkin, skinHex);
+
+for (const field of LOOK_FIELDS) {
+  const base = defaultLook();
+  const tweaked = { ...base, [field]: (base[field] + 2) % LOOK_COUNTS[field] };
+  const a = paintLook(base);
+  const b = paintLook(tweaked);
+  assert(
+    `Look field ${field} changes the preview`,
+    pixelsDiffer(canvasPixels(a), canvasPixels(b)),
+    `${base[field]} → ${tweaked[field]}`
+  );
+}
+
+const html = lookEditorHtml();
+assert(
+  "Look editor HTML has preview canvas and every slider",
+  html.includes('class="look-preview"') && LOOK_FIELDS.every((f) => html.includes(`data-look="${f}"`) && html.includes(LOOK_LABELS[f])),
+  LOOK_FIELDS.join(",")
+);
+
+const host = document.createElement("div");
+host.innerHTML = html;
+document.body.appendChild(host);
+const draft = { look: defaultLook() };
+let notified = 0;
+bindLookEditor(host, draft, () => {
+  notified += 1;
+});
+const before = canvasPixels(host.querySelector(".look-preview"));
+const skinSlider = host.querySelector("[data-look=skin]");
+skinSlider.value = "4";
+skinSlider.dispatchEvent(new Event("input"));
+const after = canvasPixels(host.querySelector(".look-preview"));
+assert(
+  "Look slider updates draft and preview without Apply",
+  draft.look.skin === 4 && notified === 1 && pixelsDiffer(before, after),
+  `skin=${draft.look.skin} notify=${notified}`
+);
+host.remove();
 
 summary.textContent = `${passed} passed, ${failed} failed, ${skipped} skipped`;
 document.title = failed ? `FAIL ${failed}` : `PASS ${passed}`;

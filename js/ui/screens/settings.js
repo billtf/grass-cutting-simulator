@@ -1,5 +1,8 @@
 import { el, showOverlay, hideOverlay } from "../dom.js";
 import { clearSave, exportSaveJson, parseImportedSave } from "../../save.js";
+import { activeCharacter } from "../../sim/xp.js";
+import { defaultLook } from "../../entities/characters.js";
+import { bindLookEditor, lookEditorHtml } from "../lookEditor.js";
 
 export function createSettingsScene(game, { fromTitle }) {
   return {
@@ -8,8 +11,15 @@ export function createSettingsScene(game, { fromTitle }) {
     blocksUpdate: true,
     enter() {
       const current = game.state?.difficulty || "normal";
+      const character = game.state ? activeCharacter(game.state) : null;
+      if (character && !character.look) character.look = defaultLook();
+      const lookBlock = character
+        ? `<h3 class="settings-look-title">How you look</h3>
+          <p class="fine">Tweaks show on the lawn right away. Closing still saves like usual.</p>
+          ${lookEditorHtml()}`
+        : "";
       const card = el(`
-        <div class="panel">
+        <div class="panel ${character ? "wide" : ""}">
           <h2>Settings</h2>
           <p>Change difficulty anytime. Your lawn and coins stay.</p>
           <label class="field">Difficulty
@@ -25,8 +35,9 @@ export function createSettingsScene(game, { fromTitle }) {
           </label>
           <label class="trait"><input type="checkbox" data-cb ${game.state?.settings.colorblind ? "checked" : ""}/> Colorblind overlay colors</label>
           <label class="trait"><input type="checkbox" data-motion ${game.state?.settings.reducedMotion ? "checked" : ""}/> Reduced motion</label>
+          ${lookBlock}
           <label class="field">What's new
-            <span>v${game.config.version} — skippable day-1 guide names brown grass and yellow weeds.</span>
+            <span>v${game.config.version} — live player look preview in Settings. Tweaks show as you drag.</span>
           </label>
           <div class="btn-col">
             <button class="btn" data-act="export">Export save</button>
@@ -49,9 +60,13 @@ export function createSettingsScene(game, { fromTitle }) {
           document.body.classList.toggle("reduced-motion", e.target.checked);
         }
       });
+      if (character) bindLookEditor(card, character);
       card.addEventListener("click", (e) => {
         const act = e.target.closest("[data-act]")?.dataset.act;
-        if (act === "back") game.scenes.pop();
+        if (act === "back") {
+          if (game.state) game.save();
+          game.scenes.pop();
+        }
         if (act === "easy" || act === "normal" || act === "hard") {
           if (game.state) game.setDifficulty(act);
           game.scenes.pop();
