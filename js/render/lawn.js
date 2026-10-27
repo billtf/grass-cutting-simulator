@@ -137,10 +137,21 @@ function drawGrass(ctx, lawn, x, y, ts, i) {
     ctx.fillRect(px, py, ts, 1);
   }
   if (lawn.weed && lawn.weed[i] > 0) {
+    const n = lawn.weed[i];
+    ctx.fillStyle = "#2e7d32";
+    ctx.fillRect(px + 7, py + 8, 2, 6);
     ctx.fillStyle = "#fdd835";
-    ctx.fillRect(px + 3, py + 9, 3, 3);
-    ctx.fillStyle = "#f57f17";
-    ctx.fillRect(px + 4, py + 7, 1, 3);
+    ctx.fillRect(px + 5, py + 4, 6, 5);
+    ctx.fillStyle = "#fff59d";
+    ctx.fillRect(px + 7, py + 5, 2, 2);
+    if (n >= 2) {
+      ctx.fillStyle = "#f9a825";
+      ctx.fillRect(px + 2, py + 7, 4, 4);
+    }
+    if (n >= 3) {
+      ctx.fillStyle = "#ffeb3b";
+      ctx.fillRect(px + 10, py + 8, 4, 4);
+    }
   }
   if (lawn.leafCover && lawn.leafCover[i] > 0) {
     ctx.fillStyle = "#8d6e63";

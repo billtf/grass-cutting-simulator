@@ -6,7 +6,7 @@ This repo is named `grass-cutting-simulator`. The game name on screen is **Grass
 
 **Play (GitHub Pages):** https://billtf.github.io/grass-cutting-simulator/
 
-No install, no login, no server. It is meant to run in Chrome on a school Chromebook. Cut is always on screen; the joystick appears on touchscreens.
+No install, no login, no server. It is meant to run in Chrome on a school Chromebook. Cut is always on screen; the joystick appears on touchscreens. A skippable day-1 card teaches cutting, watering, and weeds.
 
 ## Open locally
 
@@ -24,7 +24,8 @@ Then open http://localhost:8000/
 | --- | --- |
 | Move | WASD or arrow keys |
 | Cut | Space (tap or hold), click the lawn, or the on-screen Cut button |
-| Open shed | E (stand next to the brown shed) |
+| Open shed | E (stand next to the wooden shed) |
+| Skip or step the day-1 guide | Next / Skip on the yellow card |
 | Sit on the porch | E on the path in front of the house |
 | Switch tool | Q or 1–9 |
 | Deck height | Z / X (mowers) |

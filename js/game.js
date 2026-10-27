@@ -2,6 +2,7 @@ import { createRng, randomSeed } from "./rng.js";
 import { SceneManager } from "./scene.js";
 import { createClock } from "./clock.js";
 import { createLawn, applyLayout, markAllDirty, ensureTallEnoughLawn } from "./sim/lawn.js";
+import { seedFirstDayHazards, resumeTutorialStep } from "./sim/tutorial.js";
 import { createPlayer } from "./entities/player.js";
 import { createCamera, resizeCamera } from "./render/camera.js";
 import { createLawnAtlas, rebuildAtlas } from "./render/lawn.js";
@@ -170,6 +171,7 @@ export class Game {
       this.config,
       "front"
     );
+    seedFirstDayHazards(lawn, { x: 16, y: 7 });
     const today = weatherForDay(rng, 1, rules.forecastAccuracy, this.weatherTable);
     const tomorrow = weatherForDay(rng, 2, rules.forecastAccuracy, this.weatherTable);
     return {
@@ -304,6 +306,7 @@ export class Game {
       almanac: saved.almanac || [],
       care: saved.care || { sprinklers: [], timed: false },
       jobs: saved.jobs || emptyJobs(),
+      tutorialStep: resumeTutorialStep(saved),
       dayLog: saved.dayLog || {
         cuts: 0,
         clean: 0,

@@ -1,6 +1,6 @@
 import { el, showOverlay, hideOverlay } from "../dom.js";
 import { pressed } from "../../input.js";
-import { TIP_TEXT } from "../../sim/tips.js";
+import { TIP_TEXT, TIP_TITLE } from "../../sim/tips.js";
 
 export function createAlmanacScene(game) {
   return {
@@ -12,13 +12,13 @@ export function createAlmanacScene(game) {
       const items = Object.entries(TIP_TEXT)
         .map(([id, text]) => {
           const have = unlocked.has(id);
-          return `<li class="${have ? "open" : "locked"}"><strong>${have ? titleCase(id) : "Locked tip"}</strong><p>${have ? text : "Keep playing to unlock this tip."}</p></li>`;
+          return `<li class="${have ? "open" : "locked"}"><strong>${have ? TIP_TITLE[id] || titleCase(id) : "Locked tip"}</strong><p>${have ? text : "Keep playing to unlock this tip."}</p></li>`;
         })
         .join("");
       const card = el(`
         <div class="panel wide">
           <h2>Almanac</h2>
-          <p class="fine">Short lawn tips. New ones appear the first time a rule bites.</p>
+          <p class="fine">Short lawn tips. New ones appear the first time you see a problem.</p>
           <ul class="almanac-list">${items}</ul>
           <div class="btn-col">
             <button class="btn" data-act="back">Back</button>

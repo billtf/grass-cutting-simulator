@@ -110,7 +110,7 @@ Goal: a new player earns coins and climbs from scissors to the gas push mower in
 
 Goal: the lawn is alive; ignoring water, weeds, or the forecast costs points, and the game explains why. Tag `v0.3`.
 
-**Status (2026-10-26):** P2.1–P2.13 implemented. Skipping water browns the lawn; the day summary says why. H cycles height / moisture / health. Pause → Almanac stores first-time tips.
+**Status (2026-10-27):** P2.1–P2.13 implemented. Skipping water browns the lawn; the day summary says why. H cycles height / moisture / health. First sight of brown patches or yellow weed puffs names them in a HUD tip and logs to the Almanac. Pause → Almanac re-reads tips.
 
 - [x] **P2.1 Moisture model (2 h).** Hourly drying by weather; growth and health tied to the ideal 40 to 70 band; browning and fungus.
 - [x] **P2.2 Watering tools (3 h).** Can, hose, oscillating sprinkler (placed, area of effect), timed sprinkler; time of day efficiency; water bill.
@@ -123,7 +123,7 @@ Goal: the lawn is alive; ignoring water, weeds, or the forecast costs points, an
 - [x] **P2.9 Leaves and aeration (1.5 h).** Rake and blower; leaf cover blocks sun; aerator boosts water uptake.
 - [x] **P2.10 HOA inspections and warnings (2 h).** Weekly inspection, warnings, fine after the limit, notice popup.
 - [x] **P2.11 Moisture and health overlays (1 h).** H cycles height, moisture, health maps.
-- [x] **P2.12 Tips system (1.5 h).** Context tips at a 6th grade reading level the first time each rule bites; logged to the almanac.
+- [x] **P2.12 Tips system (1.5 h).** Context tips at a 6th grade reading level the first time each rule bites; logged to the almanac. Brown patches and yellow weed puffs are named the first time they appear on screen, with the action (water in the morning / Hand pull).
 - [x] **P2.13 Balance pass (1 h).** Normal mode lawn survives with about half of each in game day spent on care.
 
 **Done when:** skipping water for 3 in game days browns the lawn and the day summary says why; a full spring to winter run works.
@@ -162,7 +162,7 @@ Goal: players build and restyle their own crew, and earn by mowing for neighbors
 
 Goal: a full year of play with no dead ends, real art, sound, and touch support. Tag `v1.0`.
 
-**Status (2026-10-26):** Most of Phase 4 is in, including the P4.10 pixel-art pass (procedural grass/house/shed/player, no CDN). Remaining: zone features (shade/beds/slope), add-ons, pests/breakdowns. Camera already follows the player; a dedicated minimap HUD chip is still light.
+**Status (2026-10-27):** Most of Phase 4 is in, including the P4.10 pixel-art pass and a real skippable day-1 guide (P4.13). Remaining: zone features (shade/beds/slope), add-ons, pests/breakdowns. Camera already follows the player; a dedicated minimap HUD chip is still light.
 
 **Content (14 h)**
 
@@ -184,7 +184,7 @@ Goal: a full year of play with no dead ends, real art, sound, and touch support.
 - [x] **P4.10 Pixel art pass (4 h).** Grass blades at 6 height bands, pixel house/shed/fence/path, kid + held tools, HUD chrome, rain/heat tint. Procedural Canvas 2D / CSS only (no external asset host).
 - [x] **P4.11 Sound (2 h).** Mower loops by tier, snip, water, rain, UI clicks, music toggle.
 - [x] **P4.12 Touch controls (2 h).** Joystick on coarse pointers; Cut / E / Q always visible so Chromebook trackpad clicks work. Canvas pointer also binds Cut.
-- [x] **P4.13 Almanac and guided first day (2 h).** Unlocked tips and tool info; skippable tutorial.
+- [x] **P4.13 Almanac and guided first day (2 h).** Skippable HUD coach walks move → cut → brown patches → morning water → yellow weeds → Hand pull → shed. Skip writes the care tips to the Almanac. Continue with an unfinished guide resumes; old day-1 saves restart the guide, later days do not. New lawns spawn a few thirsty patches and weeds so day 1 has something to point at.
 - [x] **P4.14 Accessibility settings (1 h).** Colorblind palette for overlays, reduced motion, volume.
 - [x] **P4.15 Final balance pass (1 h).** Full year on Normal; check that each lawn upgrade needs the next tool tier.
 

@@ -7,7 +7,17 @@ import { findTool, findAnyTool, cycleTool, selectSlot, cutSecondsFor, targetHeig
 import { follow } from "../../render/camera.js";
 import { paintDirty, drawAtlas, drawPlayer, drawCutProgress } from "../../render/lawn.js";
 import { drawFx, drawWeather, spawnSnip, tickFx } from "../../render/fx.js";
-import { updateHud, showToast } from "../hud.js";
+import { updateHud, showToast, showCoach, hideCoach, bindCoach } from "../hud.js";
+import { unlockTip, hasTip } from "../../sim/tips.js";
+import {
+  TUTORIAL_STEPS,
+  currentTutorialStep,
+  isTutorialDone,
+  nextTutorialStep,
+  skipTutorial,
+  noteTutorialAction,
+  nearbyHazards,
+} from "../../sim/tutorial.js";
 import { cutAttemptTiles, toolCanCutCell, toolBlockedReason, performSwath } from "../../sim/cutting.js";
 import { setTouchVisible } from "../touch.js";
 import { activeCharacter, addXp } from "../../sim/xp.js";
@@ -33,7 +43,6 @@ import {
 } from "../../sim/care.js";
 import { weatherStats, weatherForDay, labelWeather } from "../../sim/weather.js";
 import { inspectLawn, applyInspection } from "../../sim/hoa.js";
-import { unlockTip } from "../../sim/tips.js";
 import { seasonForDay } from "../../clock.js";
 
 export function createLawnScene(game) {
@@ -44,14 +53,31 @@ export function createLawnScene(game) {
       game.hudEl.classList.add("active");
       setTouchVisible(game.touchEl, true);
       updateHud(game.hud, game.state, game.allTools, game.weatherTable);
-      if (game.state.tutorialStep === 0) {
-        showToast(game.hud, "Welcome! WASD to walk. Click Cut, tap the lawn, or hold Space. E at the shed. H for maps.", 6000);
-        game.state.tutorialStep = 1;
-      }
+      bindCoach(game.hud, {
+        onNext: () => {
+          const unlocked = coachUnlock(game);
+          nextTutorialStep(game.state);
+          refreshCoach(game, unlocked);
+        },
+        onSkip: () => {
+          skipTutorial(game.state);
+          unlockTip(game.state, "brown");
+          unlockTip(game.state, "weeds");
+          unlockTip(game.state, "water");
+          unlockTip(game.state, "shed");
+          hideCoach(game.hud);
+          if (game.hud.hint) {
+            game.hud.hint.textContent = "WASD move · click/Space cut · Q tool · E shed · H overlay";
+          }
+          showToast(game.hud, "Guide skipped. Yellow puffs are weeds. Brown is thirsty grass. Esc, then Almanac, re-reads tips.", 5200);
+        },
+      });
+      refreshCoach(game);
     },
     exit() {
       game.hudEl.classList.remove("active");
       setTouchVisible(game.touchEl, false);
+      hideCoach(game.hud);
     },
     update(dt, g) {
       const state = g.state;
@@ -108,6 +134,7 @@ export function createLawnScene(game) {
         move,
         dt
       );
+      if (moved) maybeAdvanceTutorial(g, "moved");
       if (moved && character.needs) {
         const drain = traitValue(character, g.traits, "energyDrainMult", { hour: state.clock.hour }, 1);
         const heat = state.game.weatherToday === "heat" && !hasTraitFlag(character, g.traits, "heatImmune");
@@ -141,6 +168,7 @@ export function createLawnScene(game) {
             showToast(g.hud, `${line}${report.neighbor.linePay} ${report.stars}★ +${report.pay} coins`, 4200);
           }
         } else if (isShed(state.lawn, nearby.x, nearby.y) || nearShed(state, g.config.tileSize)) {
+          maybeAdvanceTutorial(g, "shed");
           g.scenes.push(createShedScene(g));
         } else if (here.y >= 4 && here.y <= 5 && here.x >= 14 && here.x <= 17) {
           character.needs.energy = Math.min(100, character.needs.energy + 15);
@@ -156,6 +184,11 @@ export function createLawnScene(game) {
       if (stepped.dayRolled) {
         onDayEnd(g);
       }
+
+      const equippedNow = findAnyTool(g.tools, g.careTools, state.inventory.equippedTool);
+      if (equippedNow.role === "water") maybeAdvanceTutorial(g, "waterTool");
+      if (equippedNow.role === "weed") maybeAdvanceTutorial(g, "weedTool");
+      scanHazards(g);
 
       follow(g.camera, state.player, state.lawn, g.config.tileSize);
       tickFx(g.fx, dt);
@@ -308,6 +341,7 @@ function handleCut(game, dt) {
     spawnSnip(game.fx, (result.x + 0.5) * tileSize, (result.y + 0.5) * tileSize, state.settings.reducedMotion);
   }
   beep("snip", state.settings.volume ?? 0.7);
+  maybeAdvanceTutorial(game, "cut");
   const levels = addXp(character, gained);
   if (levels) showToast(game.hud, `Level up! You are level ${character.level}.`);
   else if (oneThird) {
@@ -344,13 +378,13 @@ function onHour(game, hour) {
   const weather = weatherStats(state.game.weatherToday, game.weatherTable);
   const careTick = tickMoistureHealth(state.lawn, weather, game.care, state.rng, season);
   tickSpray(state.lawn);
-  if (careTick.browned > 40) {
-    const tip = unlockTip(state, "dry");
-    if (tip) showToast(game.hud, tip);
+  if (careTick.browned > 0) {
+    const tip = unlockTip(state, "brown") || unlockTip(state, "dry");
+    if (tip) showToast(game.hud, tip, 5000);
   }
-  if (careTick.fungus > 20) {
+  if (careTick.fungus > 0) {
     const tip = unlockTip(state, "fungus");
-    if (tip) showToast(game.hud, tip);
+    if (tip) showToast(game.hud, tip, 5000);
   }
   const penalty = overgrownPenalty(grown.overgrownCount, game.config);
   if (penalty > 0) {
@@ -522,10 +556,12 @@ function handleCare(game, dt, tool) {
     }
     if (result.fungus) {
       const tip = unlockTip(state, "fungus");
-      message = tip || "Evening water can grow fungus.";
+      message = tip || "Evening water can grow fungus (a plant sickness).";
     } else {
       message = `Watered ${result.count} cells. Bill ${result.bill} coins.`;
     }
+    maybeAdvanceTutorial(game, "watered");
+    unlockTip(state, "water");
   } else if (tool.role === "fertilizer") {
     const result = applyFertilizer(state.lawn, tiles, tool.amount, game.care.fertilizerBurnAt, game.care.fertilizerBurn);
     if (result.burned) {
@@ -538,7 +574,8 @@ function handleCare(game, dt, tool) {
     if (result.cleared) {
       const tip = unlockTip(state, "weeds");
       message = tip || `Pulled weeds on ${result.cleared} cells. +${result.cleared * 5}`;
-    } else message = "No weeds here.";
+      maybeAdvanceTutorial(game, "weeded");
+    } else message = "No weeds here. Yellow puffs are weeds — walk onto one.";
   } else if (tool.role === "spray") {
     applySpray(state.lawn, tiles);
     message = "Spray needs 24 hours with no rain to work.";
@@ -613,6 +650,67 @@ function runRobotsAndGoats(game, hour) {
         state.lawn.heightArr[i] = Math.max(2.5, state.lawn.heightArr[i] - 0.4);
         state.lawn.dirty[i] = 1;
       }
+    }
+  }
+}
+
+function coachUnlock(game) {
+  const step = currentTutorialStep(game.state);
+  if (step?.tipId) return unlockTip(game.state, step.tipId);
+  return null;
+}
+
+function refreshCoach(game, extraToast) {
+  const step = currentTutorialStep(game.state);
+  if (!step) {
+    hideCoach(game.hud);
+    if (extraToast) showToast(game.hud, extraToast, 5000);
+    else if (isTutorialDone(game.state) && extraToast !== false) {
+      /* keep silent on re-enter */
+    }
+    return;
+  }
+  showCoach(game.hud, step, TUTORIAL_STEPS.indexOf(step), TUTORIAL_STEPS.length);
+  if (game.hud.hint) game.hud.hint.textContent = step.hint;
+  if (extraToast) showToast(game.hud, extraToast, 5000);
+}
+
+function maybeAdvanceTutorial(game, action) {
+  if (isTutorialDone(game.state)) return;
+  const before = currentTutorialStep(game.state);
+  const next = noteTutorialAction(game.state, action);
+  if (!next && !isTutorialDone(game.state)) return;
+  const unlocked = before?.tipId ? unlockTip(game.state, before.tipId) : null;
+  if (isTutorialDone(game.state)) {
+    hideCoach(game.hud);
+    showToast(game.hud, unlocked || "Guide done. Esc, then Almanac, re-reads these tips.", 5000);
+    if (game.hud.hint) {
+      game.hud.hint.textContent = "WASD move · click/Space cut · Q tool · E shed · H overlay";
+    }
+    return;
+  }
+  refreshCoach(game, unlocked);
+}
+
+function scanHazards(game) {
+  const now = performance.now();
+  if (scanHazards._busy && now < scanHazards._busy) return;
+  const state = game.state;
+  const origin = tileAt(state.player, game.config.tileSize);
+  const found = nearbyHazards(state.lawn, origin, 5);
+  if (found.brown && !hasTip(state, "brown")) {
+    const tip = unlockTip(state, "brown");
+    if (tip) {
+      showToast(game.hud, tip, 5200);
+      scanHazards._busy = now + 2800;
+      return;
+    }
+  }
+  if (found.weed && !hasTip(state, "weeds")) {
+    const tip = unlockTip(state, "weeds");
+    if (tip) {
+      showToast(game.hud, tip, 5200);
+      scanHazards._busy = now + 2800;
     }
   }
 }
